@@ -5,10 +5,11 @@
  *      Author: cforster
  */
 
-#ifndef MATH_UTILS_H_
-#define MATH_UTILS_H_
+#ifndef VIKIT_MATH_UTILS_H_
+#define VIKIT_MATH_UTILS_H_
 
-
+#include <cstdlib> // size_t, fabs
+#include <cmath>   // sin, cos
 #include <Eigen/Core>
 #include <Eigen/StdVector>
 #include <sophus/se3.h>
@@ -17,8 +18,9 @@ namespace vk
 {
 
 using namespace Eigen;
-using namespace std;
-using namespace Sophus;
+using Sophus::SE3;
+using std::size_t;
+using std::uint8_t;
 
 Vector3d triangulateFeatureNonLin(
     const Matrix3d& R,
@@ -42,25 +44,26 @@ double reprojError(
     double error_multiplier2);
 
 double computeInliers(
-    const vector<Vector3d>& features1,
-    const vector<Vector3d>& features2,
-    const Matrix3d& R,
-    const Vector3d& t,
+    const std::vector<Vector3d, aligned_allocator<Vector3d> >& features1, ///< c1
+    const std::vector<Vector3d, aligned_allocator<Vector3d> >& features2, ///< c2
+    const Matrix3d& R, ///< R_c1_c2
+    const Vector3d& t, ///< c1_t
     const double reproj_thresh,
     double error_multiplier2,
-    vector<Vector3d>& xyz_vec,
-    vector<int>& inliers,
-    vector<int>& outliers);
+    std::vector<Vector3d, aligned_allocator<Vector3d> >& xyz_vec, ///< in frame c1
+    std::vector<int>& inliers,
+    std::vector<int>& outliers
+);
 
 void computeInliersOneView(
-    const vector<Vector3d> & feature_sphere_vec,
-    const vector<Vector3d> & xyz_vec,
+    const std::vector<Vector3d, aligned_allocator<Vector3d> >& feature_sphere_vec,
+    const std::vector<Vector3d, aligned_allocator<Vector3d> >& xyz_vec,
     const Matrix3d &R,
     const Vector3d &t,
     const double reproj_thresh,
     const double error_multiplier2,
-    vector<int>& inliers,
-    vector<int>& outliers);
+    std::vector<int>& inliers,
+    std::vector<int>& outliers);
 
 //! Direct Cosine Matrix to Roll Pitch Yaw
 Vector3d dcm2rpy(const Matrix3d &R);
@@ -93,7 +96,7 @@ inline double norm_max(const Eigen::VectorXd & v)
   double max = -1;
   for (int i=0; i<v.size(); i++)
   {
-    double abs = fabs(v[i]);
+    double abs = std::fabs(v[i]);
     if(abs>max){
       max = abs;
     }
@@ -122,11 +125,11 @@ inline Vector4d unproject3d(const Vector3d& v)
 }
 
 template<class T>
-T getMedian(vector<T>& data_vec)
+T getMedian(std::vector<T>& data_vec)
 {
   assert(!data_vec.empty());
-  typename vector<T>::iterator it = data_vec.begin()+floor(data_vec.size()/2);
-  nth_element(data_vec.begin(), it, data_vec.end());
+  typename std::vector<T>::iterator it = data_vec.begin()+floor(data_vec.size()/2);
+  std::nth_element(data_vec.begin(), it, data_vec.end());
   return *it;
 }
 
@@ -141,10 +144,10 @@ inline Vector2d pyrFromZero_2d(const Vector2d& uv_0, int level)
                   pyrFromZero_d(uv_0[1], level));
 }
 
-inline void
-frameJac_xyz2uv(const Vector3d & xyz,
-                 const double & focal_length,
-                 Matrix<double,2,6> & frame_jac)
+inline void frameJac_xyz2uv(
+        const Vector3d & xyz,
+        const double & focal_length,
+        Matrix<double,2,6> & frame_jac)
 {
   const double x = xyz[0];
   const double y = xyz[1];
@@ -168,4 +171,4 @@ frameJac_xyz2uv(const Vector3d & xyz,
 
 } // end namespace vk
 
-#endif /* MATH_UTILS_H_ */
+#endif // VIKIT_MATH_UTILS_H_
