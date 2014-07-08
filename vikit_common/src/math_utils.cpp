@@ -63,24 +63,24 @@ double reprojError(
 double computeInliers(
         const std::vector<Vector3d, aligned_allocator<Vector3d> >& features1,
         const std::vector<Vector3d, aligned_allocator<Vector3d> >& features2,
-        const Matrix3d& R,
+        const Matrix3d& R_12,
         const Vector3d& t,
         const double reproj_thresh,
         double error_multiplier2,
-        std::vector<Vector3d, aligned_allocator<Vector3d> >& xyz_vec,
+        std::vector<Vector3d, aligned_allocator<Vector3d> >& xyz_vec_in_1,
         std::vector<int>& inliers,
         std::vector<int>& outliers)
 {
   inliers.clear(); inliers.reserve(features1.size());
   outliers.clear(); outliers.reserve(features1.size());
-  xyz_vec.clear(); xyz_vec.reserve(features1.size());
+  xyz_vec_in_1.clear(); xyz_vec_in_1.reserve(features1.size());
   double tot_error = 0;
   //triangulate all features and compute reprojection errors and inliers
   for(size_t j=0; j<features1.size(); ++j)
   {
-    xyz_vec.push_back(triangulateFeatureNonLin(R, t, features1[j], features2[j] ));
-    double e1 = reprojError(features1[j], xyz_vec.back(), error_multiplier2);
-    double e2 = reprojError(features2[j], R.transpose()*(xyz_vec.back()-t), error_multiplier2);
+    xyz_vec_in_1.push_back(triangulateFeatureNonLin(R_12, t, features1[j], features2[j] ));
+    double e1 = reprojError(features1[j], xyz_vec_in_1.back(), error_multiplier2);
+    double e2 = reprojError(features2[j], R_12.transpose()*(xyz_vec_in_1.back()-t), error_multiplier2);
     if(e1 > reproj_thresh || e2 > reproj_thresh)
       outliers.push_back(j);
     else
