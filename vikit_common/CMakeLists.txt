@@ -57,8 +57,7 @@ LIST(APPEND VIKIT_SOURCEFILES
   src/robust_cost.cpp
   src/user_input_thread.cpp
   src/pinhole_camera.cpp
-  src/homography.cpp
-  src/img_align.cpp)
+  src/homography.cpp)
 
 # Set header files
 LIST(APPEND VIKIT_HEADERFILES
@@ -69,7 +68,6 @@ LIST(APPEND VIKIT_HEADERFILES
   include/vikit/file_reader.h
   include/vikit/file_reader_types.h
   include/vikit/homography.h
-  include/vikit/img_align.h
   include/vikit/math_utils.h
   include/vikit/nlls_solver.h
   include/vikit/nlls_solver_impl.hpp
