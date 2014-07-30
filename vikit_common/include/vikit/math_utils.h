@@ -13,6 +13,7 @@
 #include <Eigen/Core>
 #include <Eigen/StdVector>
 #include <sophus/se3.h>
+#include <sophus/so3.h>
 
 namespace vk
 {
@@ -65,17 +66,20 @@ void computeInliersOneView(
     std::vector<int>& inliers,
     std::vector<int>& outliers);
 
-//! Direct Cosine Matrix to Roll Pitch Yaw
+/// Direct Cosine Matrix to Roll Pitch Yaw
 Vector3d dcm2rpy(const Matrix3d &R);
 
-//! Roll Pitch Yaw to Direct Cosine Matrix
+/// Roll Pitch Yaw to Direct Cosine Matrix
 Matrix3d rpy2dcm(const Vector3d &rpy);
 
-//! Angle Axis parametrization to Quaternion
+/// Angle Axis parametrization to Quaternion
 Quaterniond angax2quat(const Vector3d& n, const double& angle);
 
-//! Angle Axis parametrization to Matrix representation
+/// Angle Axis parametrization to Matrix representation
 Matrix3d angax2dcm(const Vector3d& n, const double& angle);
+
+/// Spherical linear interpolation. t should be in [0,1]
+Sophus::SO3 slerp(const Sophus::SO3& R0, const Sophus::SO3& R1, double t);
 
 double sampsonusError(
     const Vector2d &v2Dash,
@@ -164,7 +168,7 @@ template<class T>
 T getMedian(std::vector<T>& data_vec)
 {
   assert(!data_vec.empty());
-  typename std::vector<T>::iterator it = data_vec.begin()+floor(data_vec.size()/2);
+  typename std::vector<T>::iterator it = data_vec.begin()+std::floor(data_vec.size()/2);
   std::nth_element(data_vec.begin(), it, data_vec.end());
   return *it;
 }
