@@ -86,7 +86,7 @@ double sampsonusError(
     const Matrix3d& m3Essential,
     const Vector2d& v2);
 
-inline Matrix3d sqew(const Vector3d& v)
+inline Matrix3d skew(const Vector3d& v)
 {
   Matrix3d v_sqew;
   v_sqew << 0, -v[2], v[1],
@@ -105,7 +105,7 @@ inline Matrix3d rightJacobianExpMapSO3(const Vector3d& x)
     Jr = Matrix3d::Identity();
   }
   else{
-    const Matrix3d X = vk::sqew(x); // element of Lie algebra so(3): X = x^
+    const Matrix3d X = vk::skew(x); // element of Lie algebra so(3): X = x^
     Jr = Matrix3d::Identity() - ((1-cos(normx))/(normx*normx)) * X +
         ((normx-sin(normx))/(normx*normx*normx)) * X * X; // right Jacobian
   }
@@ -124,7 +124,7 @@ inline Matrix3d rightJacobianExpMapSO3inverse(const Vector3d& x)
   }
   else
   {
-    const Matrix3d X = vk::sqew(x); // element of Lie algebra so(3): X = x^
+    const Matrix3d X = vk::skew(x); // element of Lie algebra so(3): X = x^
     Jrinv = Matrix3d::Identity() +
         0.5 * X + (1/(normx*normx) - (1+cos(normx))/(2*normx * sin(normx))   ) * X * X;
   }

@@ -171,7 +171,7 @@ Quaterniond angax2quat(const Vector3d& n, const double& angle)
 Matrix3d angax2dcm(const Vector3d& n, const double& angle)
 {
   // n must be normalized
-  Matrix3d sqewn(sqew(n));
+  Matrix3d sqewn(skew(n));
   return Matrix3d(Matrix3d::Identity() + sqewn*sin(angle) + sqewn*sqewn*(1-cos(angle)));
 }
 
