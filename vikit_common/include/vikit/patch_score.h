@@ -11,7 +11,10 @@
 #include <stdint.h>
 
 #if __SSE2__
-#include <tmmintrin.h>
+# include <tmmintrin.h>
+#endif
+#ifdef __ARM_NEON__
+# include <arm_neon.h>
 #endif
 
 namespace vk {
@@ -84,7 +87,7 @@ public:
   int computeScore(uint8_t* cur_patch, int stride) const
   {
     int sumB, sumBB, sumAB;
-#if __SSE2__
+#ifdef __SSE2__
     if(patch_size_ == 8)
     {
       // From PTAM-GPL, Copyright 2008 Isis Innovation Limited
@@ -118,6 +121,8 @@ public:
       xTemplateAsWords = _mm_unpacklo_epi8(xTemplateAsEightBytes,xZero);
       xProduct = _mm_madd_epi16(xImageAsWords, xTemplateAsWords);
       xCrossSums = _mm_add_epi32(xProduct, xCrossSums);
+
+
       xImageAsEightBytes=_mm_loadl_epi64((__m128i*) imagepointer);
       imagepointer += cur_stride;
       xImageAsWords = _mm_unpacklo_epi8(xImageAsEightBytes,xZero);
@@ -193,6 +198,60 @@ public:
       sumB = SumXMM_16(xImageSums);
       sumAB = SumXMM_32(xCrossSums);
       sumBB = SumXMM_32(xImageSqSums);
+    }
+    else
+#endif
+#ifdef __ARM_NEON__
+    if(patch_size_ == 8)
+    {
+      uint8x16_t img_x16, tpl_x16;
+      uint16x8_t img_x8, tpl_x8;
+      uint16x8_t sumBx8 = vdupq_n_u16(0);
+      uint32x4_t sumBBx4 = vdupq_n_u32(0);
+      uint32x4_t sumABx4 = vdupq_n_u32(0);
+
+      for(int i=0; i<64; i+=16)
+      {
+        // load two rows at once
+        img_x16 = vld1q_u8(&cur_patch[i]);
+        tpl_x16 = vld1q_u8(&ref_patch_[i]);
+        uint8x8_t* img_x8_ptr = std::reinterpret_cast<uint8x8_t*>(&img_x16);
+        uint8x8_t* tpl_x8_ptr = std::reinterpret_cast<uint8x8_t*>(&img_x16);
+
+        // load first row of image and tpl
+        img_x8 = vmovl_u8(img_x8_ptr[0]);
+        tpl_x8 = vmovl_u8(tpl_x8_ptr[0]);
+        // sum img
+        sumBx8 = vaddq_u16(img_x8, sumBx8);
+        // multiply and sum
+        sumBBx4 = vmlal_u16(sumBBx4, vget_low_u16(img_x8), vget_low_u16(img_x8));
+        sumBBx4 = vmlal_u16(sumBBx4, vget_high_u16(img_x8), vget_high_u16(img_x8));
+        // multiply and sum
+        sumABx4 = vmlal_u16(sumABx4, vget_low_u16(tpl_x8), vget_low_u16(img_x8));
+        sumABx4 = vmlal_u16(sumABx4, vget_high_u16(tpl_x8), vget_high_u16(img_x8));
+
+        // load second row of image and tpl
+        img_x8 = vmovl_u8(img_x8_ptr[1]);
+        tpl_x8 = vmovl_u8(tpl_x8_ptr[1]);
+        // sum
+        sumBx8 = vaddq_u16(img_x8, sumBx8);
+        // multiply and sum
+        sumBBx4 = vmlal_u16(sumBBx4, vget_low_u16(img_x8), vget_low_u16(img_x8));
+        sumBBx4 = vmlal_u16(sumBBx4, vget_high_u16(img_x8), vget_high_u16(img_x8));
+        // multiply and sum
+        sumABx4 = vmlal_u16(sumABx4, vget_low_u16(tpl_x8), vget_low_u16(img_x8));
+        sumABx4 = vmlal_u16(sumABx4, vget_high_u16(tpl_x8), vget_high_u16(img_x8));
+      }
+
+      uint16x4_t sumBx4 = vpadd_u16(vget_low_u16(sumBx8), vget_high_u16(sumBx8));
+      sumB = vget_lane_u16(sumBx4, 0) + vget_lane_u16(sumBx4, 1)
+           + vget_lane_u16(sumBx4, 2) + vget_lane_u16(sumBx4, 3);
+
+      uint32x2_t sumBBx2 = vpadd_u32(vget_low_u32(sumBBx4), vget_high_u32(sumBBx4));
+      sumBB = vget_lane_u32(sumBBx2, 0) + vget_lane_u32(sumBBx2, 1);
+
+      uint32x2_t sumABx2 = vpadd_u32(vget_low_u32(sumABx4), vget_high_u32(sumABx4));
+      sumAB = vget_lane_u32(sumABx2, 0) + vget_lane_u32(sumABx2, 1);
     }
     else
 #endif
