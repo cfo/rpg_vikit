@@ -41,6 +41,7 @@ void testZMSSD(cv::Mat& img)
   uint8_t* ref_patch = vk::aligned_mem::aligned_alloc<uint8_t>(g_patch_size*g_patch_size, 16);
   uint8_t* cur_patch = vk::aligned_mem::aligned_alloc<uint8_t>(g_patch_size*g_patch_size, 16);
 
+
   vk::Timer t;
   for(int i=0; i<1000000; ++i)
   {
