@@ -53,15 +53,39 @@ public:
   ZMSSD(uint8_t* ref_patch) :
     ref_patch_(ref_patch)
   {
-    uint32_t sumA_uint=0, sumAA_uint=0;
-    for(int r = 0; r < patch_area_; r++)
+#ifdef __ARM_NEON__
+    if(patch_size_ == 0)
     {
-      uint8_t n = ref_patch_[r];
-      sumA_uint += n;
-      sumAA_uint += n*n;
+      uint16x8_t tpl_x8;
+      uint16x8_t sumAx8  = vdupq_n_u16(0);
+      uint32x4_t sumAAx4 = vdupq_n_u32(0);
+      for(int i=0; i<64; i+=8)
+      {
+        tpl_x8 = vmovl_u8(vld1_u8(&ref_patch_[i]));
+        sumAx8 = vaddq_u16(sumAx8, tpl_x8);
+        sumAAx4 = vmlal_u16(sumAAx4, vget_low_u16(tpl_x8), vget_low_u16(tpl_x8));
+        sumAAx4 = vmlal_u16(sumAAx4, vget_high_u16(tpl_x8), vget_high_u16(tpl_x8));
+      }
+       uint16x4_t sumAx4 = vpadd_u16(vget_low_u16(sumAx8), vget_high_u16(sumAx8));
+       sumA_ = vget_lane_u16(sumAx4, 0) + vget_lane_u16(sumAx4, 1)
+             + vget_lane_u16(sumAx4, 2) + vget_lane_u16(sumAx4, 3);
+
+       uint32x2_t sumAAx2 = vpadd_u32(vget_low_u32(sumAAx4), vget_high_u32(sumAAx4));
+       sumAA_ = vget_lane_u32(sumAAx2, 0) + vget_lane_u32(sumAAx2, 1);
     }
-    sumA_ = sumA_uint;
-    sumAA_ = sumAA_uint;
+    else
+#endif
+    {
+      uint32_t sumA_uint=0, sumAA_uint=0;
+      for(int r = 0; r < patch_area_; r++)
+      {
+        uint8_t n = ref_patch_[r];
+        sumA_uint += n;
+        sumAA_uint += n*n;
+      }
+      sumA_ = sumA_uint;
+      sumAA_ = sumAA_uint;
+    }
   }
 
   static int threshold() { return threshold_; }
@@ -204,37 +228,19 @@ public:
 #ifdef __ARM_NEON__
     if(patch_size_ == 8)
     {
-      uint8x16_t img_x16, tpl_x16;
       uint16x8_t img_x8, tpl_x8;
-      uint16x8_t sumBx8 = vdupq_n_u16(0);
+      uint16x8_t sumBx8  = vdupq_n_u16(0);
       uint32x4_t sumBBx4 = vdupq_n_u32(0);
       uint32x4_t sumABx4 = vdupq_n_u32(0);
-
-      for(int i=0; i<64; i+=16)
+      uint8_t* cur_ptr = cur_patch;
+      uint8_t* ref_ptr = ref_patch_;
+      for(int i=0; i<64; i+=8, cur_ptr+=stride, ref_ptr+=8)
       {
-        // load two rows at once
-        img_x16 = vld1q_u8(&cur_patch[i]);
-        tpl_x16 = vld1q_u8(&ref_patch_[i]);
-        uint8x8_t* img_x8_ptr = std::reinterpret_cast<uint8x8_t*>(&img_x16);
-        uint8x8_t* tpl_x8_ptr = std::reinterpret_cast<uint8x8_t*>(&img_x16);
-
         // load first row of image and tpl
-        img_x8 = vmovl_u8(img_x8_ptr[0]);
-        tpl_x8 = vmovl_u8(tpl_x8_ptr[0]);
+        img_x8 = vmovl_u8(vld1_u8(cur_ptr));
+        tpl_x8 = vmovl_u8(vld1_u8(ref_ptr));
         // sum img
-        sumBx8 = vaddq_u16(img_x8, sumBx8);
-        // multiply and sum
-        sumBBx4 = vmlal_u16(sumBBx4, vget_low_u16(img_x8), vget_low_u16(img_x8));
-        sumBBx4 = vmlal_u16(sumBBx4, vget_high_u16(img_x8), vget_high_u16(img_x8));
-        // multiply and sum
-        sumABx4 = vmlal_u16(sumABx4, vget_low_u16(tpl_x8), vget_low_u16(img_x8));
-        sumABx4 = vmlal_u16(sumABx4, vget_high_u16(tpl_x8), vget_high_u16(img_x8));
-
-        // load second row of image and tpl
-        img_x8 = vmovl_u8(img_x8_ptr[1]);
-        tpl_x8 = vmovl_u8(tpl_x8_ptr[1]);
-        // sum
-        sumBx8 = vaddq_u16(img_x8, sumBx8);
+        sumBx8 = vaddq_u16(sumBx8, img_x8);
         // multiply and sum
         sumBBx4 = vmlal_u16(sumBBx4, vget_low_u16(img_x8), vget_low_u16(img_x8));
         sumBBx4 = vmlal_u16(sumBBx4, vget_high_u16(img_x8), vget_high_u16(img_x8));
@@ -242,7 +248,6 @@ public:
         sumABx4 = vmlal_u16(sumABx4, vget_low_u16(tpl_x8), vget_low_u16(img_x8));
         sumABx4 = vmlal_u16(sumABx4, vget_high_u16(tpl_x8), vget_high_u16(img_x8));
       }
-
       uint16x4_t sumBx4 = vpadd_u16(vget_low_u16(sumBx8), vget_high_u16(sumBx8));
       sumB = vget_lane_u16(sumBx4, 0) + vget_lane_u16(sumBx4, 1)
            + vget_lane_u16(sumBx4, 2) + vget_lane_u16(sumBx4, 3);
@@ -252,6 +257,7 @@ public:
 
       uint32x2_t sumABx2 = vpadd_u32(vget_low_u32(sumABx4), vget_high_u32(sumABx4));
       sumAB = vget_lane_u32(sumABx2, 0) + vget_lane_u32(sumABx2, 1);
+
     }
     else
 #endif
