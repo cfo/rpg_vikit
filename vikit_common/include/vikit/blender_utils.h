@@ -22,7 +22,8 @@ namespace blender_utils {
 void loadBlenderDepthmap(
     const std::string file_name,
     const vk::AbstractCamera& cam,
-    cv::Mat& img)
+    cv::Mat& img,
+    bool get_z = false)
 {
   std::ifstream file_stream(file_name.c_str());
   assert(file_stream.is_open());
@@ -35,8 +36,15 @@ void loadBlenderDepthmap(
     {
       file_stream >> depth;
       // blender:
-      Eigen::Vector2d uv(vk::project2d(cam.cam2world(x,y)));
-      *img_ptr = depth * sqrt(uv[0]*uv[0] + uv[1]*uv[1] + 1.0);
+      if(get_z)
+      {
+        *img_ptr = depth;
+      }
+      else
+      {
+        Eigen::Vector2d uv(vk::project2d(cam.cam2world(x,y)));
+        *img_ptr = depth * sqrt(uv[0]*uv[0] + uv[1]*uv[1] + 1.0);
+      }
 
       // povray
       // *img_ptr = depth/100.0; // depth is in [cm], we want [m]
