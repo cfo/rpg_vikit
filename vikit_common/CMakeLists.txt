@@ -22,29 +22,29 @@ SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} -O3 -fsee -fomit-frame-pointer -
 
 # Add plain cmake packages 
 FIND_PACKAGE(OpenCV REQUIRED)
-FIND_PACKAGE(Eigen REQUIRED)
 FIND_PACKAGE(Sophus REQUIRED)
 
 # Include dirs
 INCLUDE_DIRECTORIES(
   include
-  ${Eigen_INCLUDE_DIRS}
   ${OpenCV_INCLUDE_DIRS}
   ${Sophus_INCLUDE_DIRS}
 )
 
 IF(USE_ROS)
-  FIND_PACKAGE(catkin REQUIRED COMPONENTS roscpp cmake_modules)
+  FIND_PACKAGE(catkin REQUIRED COMPONENTS roscpp cmake_modules eigen_catkin)
   LIST(APPEND INCLUDE_DIRECTORIES ${catkin_INCLUDE_DIRS})
   catkin_package(
     DEPENDS Eigen OpenCV Sophus
-    CATKIN_DEPENDS roscpp
+    CATKIN_DEPENDS roscpp eigen_catkin
     INCLUDE_DIRS include
     LIBRARIES ${PROJECT_NAME}
   )
 ELSE()
   SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
   SET(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
+  FIND_PACKAGE(Eigen REQUIRED)
+  INCLUDE_DIRECTORIES(${Eigen_INCLUDE_DIRS})
 ENDIF()
 
 # Set source files
