@@ -20,8 +20,6 @@ namespace vk
 
 using namespace Eigen;
 using Sophus::SE3;
-using std::size_t;
-using std::uint8_t;
 
 Vector3d triangulateFeatureNonLin(
     const Matrix3d& R,
