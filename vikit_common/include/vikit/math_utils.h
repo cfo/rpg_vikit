@@ -9,6 +9,7 @@
 #define VIKIT_MATH_UTILS_H_
 
 #include <cstdlib> // size_t, fabs
+#define _USE_MATH_DEFINES // for M_PI
 #include <cmath>   // sin, cos
 #include <Eigen/Core>
 #include <Eigen/StdVector>
