@@ -26,11 +26,11 @@ std::shared_ptr<vk::AbstractCamera> loadFromRosNs(const std::string& ns)
   std::string cam_model(getParam<std::string>(ns+"/cam_model"));
   if(cam_model == "Ocam")
   {
-    cam = std::make_shared<vk::OmniCamera>(getParam<std::string>(ns+"/cam_calib_file", ""));
+    cam.reset(new vk::OmniCamera(getParam<std::string>(ns+"/cam_calib_file", "")));
   }
   else if(cam_model == "Pinhole")
   {
-    cam = std::make_shared<vk::PinholeCamera>(
+    cam.reset(new vk::PinholeCamera(
         getParam<int>(ns+"/cam_width"),
         getParam<int>(ns+"/cam_height"),
         getParam<double>(ns+"/cam_fx"),
@@ -40,18 +40,18 @@ std::shared_ptr<vk::AbstractCamera> loadFromRosNs(const std::string& ns)
         getParam<double>(ns+"/cam_d0", 0.0),
         getParam<double>(ns+"/cam_d1", 0.0),
         getParam<double>(ns+"/cam_d2", 0.0),
-        getParam<double>(ns+"/cam_d3", 0.0));
+        getParam<double>(ns+"/cam_d3", 0.0)));
   }
   else if(cam_model == "ATAN")
   {
-    cam = std::make_shared<vk::ATANCamera>(
+    cam.reset(new vk::ATANCamera(
         getParam<int>(ns+"/cam_width"),
         getParam<int>(ns+"/cam_height"),
         getParam<double>(ns+"/cam_fx"),
         getParam<double>(ns+"/cam_fy"),
         getParam<double>(ns+"/cam_cx"),
         getParam<double>(ns+"/cam_cy"),
-        getParam<double>(ns+"/cam_d0"));
+        getParam<double>(ns+"/cam_d0")));
   }
   return cam;
 }
