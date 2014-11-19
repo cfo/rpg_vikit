@@ -81,6 +81,7 @@ LIST(APPEND VIKIT_HEADERFILES
   include/vikit/timer.h
   include/vikit/user_input_thread.h
   include/vikit/vision.h
+  include/vikit/homography_decomp.h
 )
 
 # Create vikit library
@@ -106,6 +107,9 @@ TARGET_LINK_LIBRARIES(vikit_test_triangulation ${PROJECT_NAME})
 
 ADD_EXECUTABLE(vikit_test_patch_score test/test_patch_score.cpp)
 TARGET_LINK_LIBRARIES(vikit_test_patch_score ${PROJECT_NAME})
+
+ADD_EXECUTABLE(vikit_test_homography test/test_homography.cpp)
+TARGET_LINK_LIBRARIES(vikit_test_homography ${PROJECT_NAME})
 
 
 ################################################################################
