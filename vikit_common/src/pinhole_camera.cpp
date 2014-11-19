@@ -120,7 +120,7 @@ void PinholeCamera::
 undistortImage(const cv::Mat& raw, cv::Mat& rectified)
 {
   if(distortion_)
-    cv::remap(raw, rectified, undist_map1_, undist_map2_, CV_INTER_LINEAR);
+    cv::remap(raw, rectified, undist_map1_, undist_map2_, CV::INTER_LINEAR);
   else
     rectified = raw.clone();
 }
