@@ -185,6 +185,17 @@ inline Vector2d pyrFromZero_2d(const Vector2d& uv_0, int level)
                   pyrFromZero_d(uv_0[1], level));
 }
 
+template<class T>
+inline T normPdf(const T x, const T mean, const T sigma)
+{
+  T exponent = x - mean;
+  exponent *= -exponent;
+  exponent /= 2 * sigma * sigma;
+  T result = std::exp(exponent);
+  result /= sigma * std::sqrt(2 * M_PI);
+  return result;
+}
+
 /// Frame jacobian for projection of 3D point in (f)rame coordinate to
 /// unit plane coordinates uv (focal length = 1).
 inline void jacobianFrame_xyz2uv(

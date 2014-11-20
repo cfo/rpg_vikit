@@ -237,12 +237,6 @@ void vk::NLLSSolver<D, T>::setRobustCostFunction(
 {
   switch(scale_estimator)
   {
-    case TDistScale:
-      if(verbose_)
-        printf("Using TDistribution Scale Estimator\n");
-      scale_estimator_.reset(new robust_cost::TDistributionScaleEstimator());
-      use_weights_=true;
-      break;
     case MADScale:
       if(verbose_)
         printf("Using MAD Scale Estimator\n");
@@ -264,11 +258,6 @@ void vk::NLLSSolver<D, T>::setRobustCostFunction(
 
   switch(weight_function)
   {
-    case TDistWeight:
-      if(verbose_)
-        printf("Using TDistribution Weight Function\n");
-      weight_function_.reset(new robust_cost::TDistributionWeightFunction());
-      break;
     case TukeyWeight:
       if(verbose_)
         printf("Using Tukey Weight Function\n");

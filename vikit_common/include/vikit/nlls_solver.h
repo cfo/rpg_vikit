@@ -43,8 +43,8 @@ class NLLSSolver {
 public:
   typedef T ModelType;
   enum Method{GaussNewton, LevenbergMarquardt};
-  enum ScaleEstimatorType{UnitScale, TDistScale, MADScale, NormalScale};
-  enum WeightFunctionType{UnitWeight, TDistWeight, TukeyWeight, HuberWeight};
+  enum ScaleEstimatorType{UnitScale, MADScale, NormalScale};
+  enum WeightFunctionType{UnitWeight, TukeyWeight, HuberWeight};
 
 protected:
   Matrix<double, D, D>  H_;       //!< Hessian approximation

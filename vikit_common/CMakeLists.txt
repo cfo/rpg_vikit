@@ -1,10 +1,12 @@
+OPTION(VIKIT_BUILD_GPL_LICENSED_CODE "Should gpl licensed code be build in the library" ON)
+OPTION(VIKIT_USE_ROS "Is ROS available?" ON)
+
 SET(PROJECT_NAME vikit_common)
 PROJECT(${PROJECT_NAME})
 CMAKE_MINIMUM_REQUIRED (VERSION 2.8.3)
 SET(CMAKE_BUILD_TYPE Release) # Release, RelWithDebInfo
 SET(CMAKE_VERBOSE_MAKEFILE OFF)
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/CMakeModules/")
-SET(USE_ROS TRUE) # Set False if you want to build this package without Catkin
 
 # Set build flags. Set IS_ARM on odroid board as environment variable
 SET(CMAKE_CXX_FLAGS "-Wall -D_LINUX -D_REENTRANT -march=native -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unknown-pragmas")
@@ -31,7 +33,7 @@ INCLUDE_DIRECTORIES(
   ${Sophus_INCLUDE_DIRS}
 )
 
-IF(USE_ROS)
+IF(VIKIT_USE_ROS)
   FIND_PACKAGE(catkin REQUIRED COMPONENTS roscpp cmake_modules eigen_catkin)
   LIST(APPEND INCLUDE_DIRECTORIES ${catkin_INCLUDE_DIRS})
   catkin_package(
@@ -57,7 +59,7 @@ LIST(APPEND VIKIT_SOURCEFILES
   src/robust_cost.cpp
   src/user_input_thread.cpp
   src/pinhole_camera.cpp
-  src/homography.cpp)
+)
 
 # Set header files
 LIST(APPEND VIKIT_HEADERFILES
@@ -65,9 +67,7 @@ LIST(APPEND VIKIT_HEADERFILES
   include/vikit/aligned_mem.h
   include/vikit/atan_camera.h
   include/vikit/blender_utils.h
-  include/vikit/file_reader.h
   include/vikit/file_reader_types.h
-  include/vikit/homography.h
   include/vikit/math_utils.h
   include/vikit/nlls_solver.h
   include/vikit/nlls_solver_impl.hpp
@@ -84,6 +84,17 @@ LIST(APPEND VIKIT_HEADERFILES
   include/vikit/homography_decomp.h
 )
 
+IF(VIKIT_BUILD_GPL_LICENSED_CODE)
+	LIST(APPEND VIKIT_SOURCEFILES
+  	src/homography.cpp
+	)
+	# Set header files
+	LIST(APPEND VIKIT_HEADERFILES
+	  include/vikit/file_reader.h
+	  include/vikit/homography.h
+	)
+ENDIF()
+
 # Create vikit library
 ADD_LIBRARY(${PROJECT_NAME} SHARED ${VIKIT_SOURCEFILES} ${VIKIT_HEADERFILES})
 TARGET_LINK_LIBRARIES(${PROJECT_NAME}
@@ -91,7 +102,7 @@ TARGET_LINK_LIBRARIES(${PROJECT_NAME}
   ${Sophus_LIBRARIES}
   ${catkin_LIBRARIES})
 
-IF(USE_ROS)
+IF(VIKIT_USE_ROS)
   TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${catkin_LIBRARIES})
 ENDIF()
 
@@ -114,7 +125,7 @@ TARGET_LINK_LIBRARIES(vikit_test_homography ${PROJECT_NAME})
 
 ################################################################################
 # Create the vikit_commonConfig.cmake file for other cmake projects.
-IF(NOT USE_ROS)
+IF(NOT VIKIT_USE_ROS)
   GET_TARGET_PROPERTY( FULL_LIBRARY_NAME ${PROJECT_NAME} LOCATION )
   SET(vikit_common_LIBRARIES ${FULL_LIBRARY_NAME} )
   SET(vikit_common_LIBRARY_DIR ${PROJECT_BINARY_DIR} )
