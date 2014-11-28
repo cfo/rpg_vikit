@@ -79,8 +79,8 @@ void vk::NLLSSolver<D, T>::optimizeGaussNewton(ModelType& model)
     update(model, new_model);
     old_model = model;
     model = new_model;
-
     chi2_ = new_chi2;
+    double x_norm = vk::norm_max(x_);
 
     if(verbose_)
     {
@@ -88,15 +88,21 @@ void vk::NLLSSolver<D, T>::optimizeGaussNewton(ModelType& model)
                 << "\t Success"
                 << "\t new_chi2 = " << new_chi2
                 << "\t n_meas = " << n_meas_
-                << "\t x_norm = " << vk::norm_max(x_)
+                << "\t x_norm = " << x_norm
                 << std::endl;
     }
 
     finishIteration();
 
     // stop when converged, i.e. update step too small
-    if(vk::norm_max(x_)<=eps_)
+    if(x_norm < eps_)
+    {
+      if(verbose_)
+      {
+        std::cout << "Converged, x_norm " << x_norm << " < " << eps_ << std::endl;
+      }
       break;
+    }
   }
 }
 
