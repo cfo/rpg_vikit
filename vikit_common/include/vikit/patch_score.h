@@ -10,7 +10,7 @@
 
 #include <stdint.h>
 
-#if __SSE2__
+#if __SSSE3__
 # include <tmmintrin.h>
 #endif
 #ifdef __ARM_NEON__
@@ -21,7 +21,7 @@ namespace vk {
 namespace patch_score {
 
 
-#if __SSE2__
+#if __SSSE3__
 // Horizontal sum of uint16s stored in an XMM register
 inline int SumXMM_16(__m128i &target)
 {
@@ -111,7 +111,7 @@ public:
   int computeScore(uint8_t* cur_patch, int stride) const
   {
     int sumB, sumBB, sumAB;
-#ifdef __SSE2__
+#ifdef __SSSE3__
     if(patch_size_ == 8)
     {
       // From PTAM-GPL, Copyright 2008 Isis Innovation Limited

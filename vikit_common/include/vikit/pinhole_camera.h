@@ -28,7 +28,6 @@ private:
   double d_[5];                 //!< distortion parameters, see http://docs.opencv.org/modules/calib3d/doc/camera_calibration_and_3d_reconstruction.html
   cv::Mat cvK_, cvD_;
   cv::Mat undist_map1_, undist_map2_;
-  bool use_optimization_;
   Matrix3d K_;
   Matrix3d K_inv_;
 
@@ -63,25 +62,25 @@ public:
 
   virtual double errorMultiplier2() const
   {
-    return fabs(fx_);
+    return std::abs(fx_);
   }
 
   virtual double errorMultiplier() const
   {
-    return fabs(4.0*fx_*fy_);
+    return std::abs(4.0*fx_*fy_);
   }
 
-  inline const Matrix3d& K() const { return K_; };
-  inline const Matrix3d& K_inv() const { return K_inv_; };
-  inline double fx() const { return fx_; };
-  inline double fy() const { return fy_; };
-  inline double cx() const { return cx_; };
-  inline double cy() const { return cy_; };
-  inline double d0() const { return d_[0]; };
-  inline double d1() const { return d_[1]; };
-  inline double d2() const { return d_[2]; };
-  inline double d3() const { return d_[3]; };
-  inline double d4() const { return d_[4]; };
+  inline const Matrix3d& K() const { return K_; }
+  inline const Matrix3d& K_inv() const { return K_inv_; }
+  inline double fx() const { return fx_; }
+  inline double fy() const { return fy_; }
+  inline double cx() const { return cx_; }
+  inline double cy() const { return cy_; }
+  inline double d0() const { return d_[0]; }
+  inline double d1() const { return d_[1]; }
+  inline double d2() const { return d_[2]; }
+  inline double d3() const { return d_[3]; }
+  inline double d4() const { return d_[4]; }
 
   void undistortImage(const cv::Mat& raw, cv::Mat& rectified);
 

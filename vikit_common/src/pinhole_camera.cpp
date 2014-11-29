@@ -16,17 +16,16 @@
 
 namespace vk {
 
-PinholeCamera::
-PinholeCamera(double width, double height,
-              double fx, double fy,
-              double cx, double cy,
-              double d0, double d1, double d2, double d3, double d4) :
-              AbstractCamera(width, height),
-              fx_(fx), fy_(fy), cx_(cx), cy_(cy),
-              distortion_(fabs(d0) > 0.0000001),
-              undist_map1_(height_, width_, CV_16SC2),
-              undist_map2_(height_, width_, CV_16SC2),
-              use_optimization_(false)
+PinholeCamera::PinholeCamera(
+    double width, double height,
+    double fx, double fy,
+    double cx, double cy,
+    double d0, double d1, double d2, double d3, double d4) :
+    AbstractCamera(width, height),
+    fx_(fx), fy_(fy), cx_(cx), cy_(cy),
+    distortion_(std::abs(d0) > 0.0000001),
+    undist_map1_(height_, width_, CV_16SC2),
+    undist_map2_(height_, width_, CV_16SC2)
 {
   d_[0] = d0; d_[1] = d1; d_[2] = d2; d_[3] = d3; d_[4] = d4;
   cvK_ = (cv::Mat_<float>(3, 3) << fx_, 0.0, cx_, 0.0, fy_, cy_, 0.0, 0.0, 1.0);
@@ -37,12 +36,10 @@ PinholeCamera(double width, double height,
   K_inv_ = K_.inverse();
 }
 
-PinholeCamera::
-~PinholeCamera()
+PinholeCamera::~PinholeCamera()
 {}
 
-Vector3d PinholeCamera::
-cam2world(const double& u, const double& v) const
+Vector3d PinholeCamera::cam2world(const double& u, const double& v) const
 {
   Vector3d xyz;
   if(!distortion_)
@@ -75,20 +72,17 @@ cam2world(const double& u, const double& v) const
   return xyz.normalized();
 }
 
-Vector3d PinholeCamera::
-cam2world (const Vector2d& uv) const
+Vector3d PinholeCamera::cam2world (const Vector2d& uv) const
 {
   return cam2world(uv[0], uv[1]);
 }
 
-Vector2d PinholeCamera::
-world2cam(const Vector3d& xyz) const
+Vector2d PinholeCamera::world2cam(const Vector3d& xyz) const
 {
   return world2cam(project2d(xyz));
 }
 
-Vector2d PinholeCamera::
-world2cam(const Vector2d& uv) const
+Vector2d PinholeCamera::world2cam(const Vector2d& uv) const
 {
   Vector2d px;
   if(!distortion_)
@@ -116,8 +110,7 @@ world2cam(const Vector2d& uv) const
   return px;
 }
 
-void PinholeCamera::
-undistortImage(const cv::Mat& raw, cv::Mat& rectified)
+void PinholeCamera::undistortImage(const cv::Mat& raw, cv::Mat& rectified)
 {
   if(distortion_)
     cv::remap(raw, rectified, undist_map1_, undist_map2_, cv::INTER_LINEAR);
