@@ -39,8 +39,7 @@ public:
   /// Camera Factory: Load camera from file.
   static AbstractCamera::Ptr loadCameraFromYamlFile(
       const std::string& filename,
-      const std::string& cam_name,
-      const bool verbose);
+      const std::string& cam_name);
 
   /// Project from pixels to world coordiantes. Returns a bearing vector of unit length.
   virtual Eigen::Vector3d cam2world(const double& x, const double& y) const = 0;

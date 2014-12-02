@@ -25,13 +25,9 @@ AbstractCamera::~AbstractCamera()
 
 AbstractCamera::Ptr AbstractCamera::loadCameraFromYamlFile(
     const std::string& filename,
-    const std::string& cam_name,
-    const bool verbose)
+    const std::string& cam_name)
 {
 #ifdef VIKIT_USE_YAML
-  if(verbose)
-    std::cout << "Camera: Load from YAML file: " << filename << std::endl;
-
   YAML::Node data = YAML::LoadFile(filename);
   if(!data)
   {
@@ -61,17 +57,6 @@ AbstractCamera::Ptr AbstractCamera::loadCameraFromYamlFile(
         Vector3d(data["T_cam_imu"]["tx"].as<double>(),
             data["T_cam_imu"]["ty"].as<double>(),
             data["T_cam_imu"]["tz"].as<double>()));
-    if(verbose)
-      std::cout << "T_imu_cam = " << std::endl
-                << T_cam_imu.inverse().matrix() << std::endl
-                << "t_cam_imu = " << T_cam_imu.translation().transpose() << std::endl
-                << "R_cam_imu = " << std::endl
-                << T_cam_imu.rotation_matrix() << std::endl;
-  }
-  else
-  {
-    if(verbose)
-      std::cout << "Camera-IMU Transformation is not specified." << std::endl;
   }
 
   // load camera
