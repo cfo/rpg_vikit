@@ -19,9 +19,6 @@
 
 namespace vk {
 
-using namespace std;
-using namespace Eigen;
-
 struct ocam_model
 {
   double pol[MAX_POL_LENGTH];    	// the polynomial coefficients: pol[0] + x"pol[1] + x^2*pol[2] + ... + x^(N-1)*pol[N-1]
@@ -47,24 +44,23 @@ public:
 
   double error_multiplier_;
 
-  OmniCamera(){}
-  OmniCamera(string calibFile);
-  ~OmniCamera();
+  OmniCamera(
+      const int width,
+      const int height,
+      const std::string& calibfile,
+      const Sophus::SE3& T_imu_cam);
 
-  virtual Vector3d
-  cam2world(const double& x, const double& y) const;
+  virtual ~OmniCamera();
 
-  virtual Vector3d
-  cam2world(const Vector2d& px) const;
+  virtual Eigen::Vector3d cam2world(const double& x, const double& y) const;
 
-  virtual Vector2d
-  world2cam(const Vector3d& xyz_c) const;
+  virtual Eigen::Vector3d cam2world(const Vector2d& px) const;
 
-  virtual Vector2d
-  world2cam(const Vector2d& uv) const;
+  virtual Eigen::Vector2d world2cam(const Vector3d& xyz_c) const;
 
-  double
-  computeErrorMultiplier();
+  virtual Eigen::Vector2d world2cam(const Vector2d& uv) const;
+
+  double computeErrorMultiplier();
 
   virtual double errorMultiplier2() const
   {

@@ -67,7 +67,7 @@ bool getDepthmapNormalAtPoint(
     return false;
 
   const size_t n_meas = (halfpatch_size*2+1)*(halfpatch_size*2+1);
-  list<Vector3d> pts;
+  std::list<Vector3d> pts;
   for(int y = px[1]-halfpatch_size; y<=px[1]+halfpatch_size; ++y)
     for(int x = px[0]-halfpatch_size; x<=px[0]+halfpatch_size; ++x)
       pts.push_back(cam.cam2world(x,y)*depth.at<float>(y,x));
@@ -77,7 +77,7 @@ bool getDepthmapNormalAtPoint(
   Matrix<double, Dynamic, 1> b; b.resize(n_meas, Eigen::NoChange);
 
   size_t i = 0;
-  for(list<Vector3d>::iterator it=pts.begin(); it!=pts.end(); ++it)
+  for(std::list<Vector3d>::iterator it=pts.begin(); it!=pts.end(); ++it)
   {
     A.row(i) << it->x(), it->y(), it->z(), 1.0;
     b[i] = 0;

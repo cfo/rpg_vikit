@@ -5,23 +5,22 @@
  *      Author: cforster
  */
 
-#include <stdio.h>
-#include <iostream>
-#include <fstream>
-#include <string.h>
-#include <math.h>
-#include <opencv2/opencv.hpp>
 #include <vikit/pinhole_camera.h>
 #include <vikit/math_utils.h>
+#include <opencv2/imgproc/imgproc.hpp>
 
 namespace vk {
 
+using namespace Eigen;
+
 PinholeCamera::PinholeCamera(
-    double width, double height,
-    double fx, double fy,
-    double cx, double cy,
-    double d0, double d1, double d2, double d3, double d4) :
-    AbstractCamera(width, height),
+    const double width, const double height,
+    const double fx, const double fy,
+    const double cx, const double cy,
+    const double d0, const double d1, const double d2,
+    const double d3, const double d4,
+    const Sophus::SE3& T_imu_cam)
+  : AbstractCamera(width, height, T_imu_cam),
     fx_(fx), fy_(fy), cx_(cx), cy_(cy),
     distortion_(std::abs(d0) > 0.0000001),
     undist_map1_(height_, width_, CV_16SC2),
@@ -51,20 +50,17 @@ Vector3d PinholeCamera::cam2world(const double& u, const double& v) const
   else
   {
     double x0,x,y0,y;
-
     x0 = x = (u - cx_) / fx_;
     y0 = y = (v - cy_) / fy_;
-
     for(int j = 0; j < 5; j++ ) // copied from opencv/cvundistort.cpp : cv::undistortPoints()
     {
-       double r2 = x*x + y*y;
-       double icdist = 1./(1 + ((d_[4]*r2 + d_[1])*r2 + d_[0])*r2);
-       double deltaX = 2*d_[2]*x*y + d_[3]*(r2 + 2*x*x);
-       double deltaY = d_[2]*(r2 + 2*y*y) + 2*d_[3]*x*y;
+       const double r2 = x*x + y*y;
+       const double icdist = 1.0/(1.0 + ((d_[4]*r2 + d_[1])*r2 + d_[0])*r2);
+       const double deltaX = 2.0*d_[2]*x*y + d_[3]*(r2 + 2.0*x*x);
+       const double deltaY = d_[2]*(r2 + 2.0*y*y) + 2.0*d_[3]*x*y;
        x = (x0 - deltaX)*icdist;
        y = (y0 - deltaY)*icdist;
     }
-
     xyz[0] = x;
     xyz[1] = y;
     xyz[2] = 1.0;

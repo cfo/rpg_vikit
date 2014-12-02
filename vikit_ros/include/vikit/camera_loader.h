@@ -26,7 +26,8 @@ std::shared_ptr<vk::AbstractCamera> loadFromRosNs(const std::string& ns)
   std::string cam_model(getParam<std::string>(ns+"/cam_model"));
   if(cam_model == "Ocam")
   {
-    cam.reset(new vk::OmniCamera(getParam<std::string>(ns+"/cam_calib_file", "")));
+    throw;
+    // cam.reset(new vk::OmniCamera(getParam<std::string>(ns+"/cam_calib_file", "")));
   }
   else if(cam_model == "Pinhole")
   {

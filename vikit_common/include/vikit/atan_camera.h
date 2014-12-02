@@ -10,19 +10,13 @@
  *  The code is an implementation of the ATAN class in PTAM by Georg Klein using Eigen.
  */
 
-#ifndef ATAN_CAMERA_H_
-#define ATAN_CAMERA_H_
+#ifndef VIKIT_ATAN_CAMERA_H_
+#define VIKIT_ATAN_CAMERA_H_
 
-#include <stdlib.h>
-#include <string>
-#include <Eigen/Eigen>
+#include <cmath>
 #include <vikit/abstract_camera.h>
-#include <vikit/math_utils.h>
 
 namespace vk {
-
-using namespace std;
-using namespace Eigen;
 
 class ATANCamera : public AbstractCamera {
 
@@ -36,43 +30,48 @@ private:
   bool distortion_;                     //!< use distortion model?
 
   //! Radial distortion transformation factor: returns ration of distorted / undistorted radius.
-  inline double rtrans_factor(double r) const
+  inline double rtrans_factor(const double r) const
   {
     if(r < 0.001 || s_ == 0.0)
       return 1.0;
     else
-      return (s_inv_* atan(r * tans_) / r);
-  };
+      return (s_inv_* std::atan(r * tans_) / r);
+  }
 
   //! Inverse radial distortion: returns un-distorted radius from distorted.
-  inline double invrtrans(double r) const
+  inline double invrtrans(const double r) const
   {
     if(s_ == 0.0)
       return r;
-    return (tan(r * s_) * tans_inv_);
-  };
+    return (std::tan(r * s_) * tans_inv_);
+  }
 
 public:
 
-  ATANCamera(double width, double height, double fx, double fy, double dx, double dy, double s);
+  ATANCamera(
+      const double width,
+      const double height,
+      const double fx,
+      const double fy,
+      const double dx,
+      const double dy,
+      const double s,
+      const Sophus::SE3& T_imu_cam =
+        Sophus::SE3(Eigen::Matrix3d::Identity(), Eigen::Vector3d::Zero()));
 
-  ~ATANCamera();
+  virtual ~ATANCamera();
 
-  virtual Vector3d
-  cam2world(const double& x, const double& y) const;
+  virtual Eigen::Vector3d cam2world(const double& x, const double& y) const;
 
-  virtual Vector3d
-  cam2world(const Vector2d& px) const;
+  virtual Eigen::Vector3d cam2world(const Eigen::Vector2d& px) const;
 
-  virtual Vector2d
-  world2cam(const Vector3d& xyz_c) const;
+  virtual Eigen::Vector2d world2cam(const Eigen::Vector3d& xyz_c) const;
 
-  virtual Vector2d
-  world2cam(const Vector2d& uv) const;
+  virtual Eigen::Vector2d world2cam(const Eigen::Vector2d& uv) const;
 
-  const Vector2d focal_length() const
+  const Eigen::Vector2d focal_length() const
   {
-    return Vector2d(fx_, fy_);
+    return Eigen::Vector2d(fx_, fy_);
   }
 
   virtual double errorMultiplier2() const
@@ -82,10 +81,10 @@ public:
 
   virtual double errorMultiplier() const
   {
-    return 4*fx_*fy_;
+    return 4.0*fx_*fy_;
   }
 };
 
 } // end namespace vk
 
-#endif /* ATAN_CAMERA_H_ */
+#endif // VIKIT_ATAN_CAMERA_H_

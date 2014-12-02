@@ -5,22 +5,17 @@
  *      Author: cforster
  */
 
-#ifndef PINHOLE_CAMERA_H_
-#define PINHOLE_CAMERA_H_
+#ifndef VIKIT_PINHOLE_CAMERA_H_
+#define VIKIT_PINHOLE_CAMERA_H_
 
-#include <stdlib.h>
-#include <string>
-#include <Eigen/Eigen>
+#include <cmath>
 #include <vikit/abstract_camera.h>
 #include <opencv2/core/core.hpp>
 
 namespace vk {
 
-using namespace std;
-using namespace Eigen;
-
-class PinholeCamera : public AbstractCamera {
-
+class PinholeCamera : public AbstractCamera
+{
 private:
   const double fx_, fy_;
   const double cx_, cy_;
@@ -28,36 +23,36 @@ private:
   double d_[5];                 //!< distortion parameters, see http://docs.opencv.org/modules/calib3d/doc/camera_calibration_and_3d_reconstruction.html
   cv::Mat cvK_, cvD_;
   cv::Mat undist_map1_, undist_map2_;
-  Matrix3d K_;
-  Matrix3d K_inv_;
+  Eigen::Matrix3d K_;
+  Eigen::Matrix3d K_inv_;
 
 public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-  PinholeCamera(double width, double height,
-                double fx, double fy, double cx, double cy,
-                double d0=0.0, double d1=0.0, double d2=0.0, double d3=0.0, double d4=0.0);
+  PinholeCamera(
+      const double width, const double height,
+      const double fx, const double fy,
+      const double cx, const double cy,
+      const double d0=0.0, const double d1=0.0, const double d2=0.0,
+      const double d3=0.0, const double d4=0.0,
+      const Sophus::SE3& T_imu_cam =
+        Sophus::SE3(Eigen::Matrix3d::Identity(), Eigen::Vector3d::Zero()));
 
   ~PinholeCamera();
 
-  void
-  initUnistortionMap();
+  void initUnistortionMap();
 
-  virtual Vector3d
-  cam2world(const double& x, const double& y) const;
+  virtual Eigen::Vector3d cam2world(const double& x, const double& y) const;
 
-  virtual Vector3d
-  cam2world(const Vector2d& px) const;
+  virtual Eigen::Vector3d cam2world(const Eigen::Vector2d& px) const;
 
-  virtual Vector2d
-  world2cam(const Vector3d& xyz_c) const;
+  virtual Eigen::Vector2d world2cam(const Eigen::Vector3d& xyz_c) const;
 
-  virtual Vector2d
-  world2cam(const Vector2d& uv) const;
+  virtual Eigen::Vector2d world2cam(const Eigen::Vector2d& uv) const;
 
-  const Vector2d focal_length() const
+  const Eigen::Vector2d focal_length() const
   {
-    return Vector2d(fx_, fy_);
+    return Eigen::Vector2d(fx_, fy_);
   }
 
   virtual double errorMultiplier2() const
@@ -70,8 +65,8 @@ public:
     return std::abs(4.0*fx_*fy_);
   }
 
-  inline const Matrix3d& K() const { return K_; }
-  inline const Matrix3d& K_inv() const { return K_inv_; }
+  inline const Eigen::Matrix3d& K() const { return K_; }
+  inline const Eigen::Matrix3d& K_inv() const { return K_inv_; }
   inline double fx() const { return fx_; }
   inline double fy() const { return fy_; }
   inline double cx() const { return cx_; }
@@ -89,4 +84,4 @@ public:
 } // end namespace vk
 
 
-#endif /* PINHOLE_CAMERA_H_ */
+#endif // VIKIT_PINHOLE_CAMERA_H_

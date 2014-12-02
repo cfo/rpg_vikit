@@ -11,9 +11,19 @@
 
 namespace vk {
 
-OmniCamera::
-OmniCamera( string calibFile )
+using namespace Eigen;
+
+OmniCamera::OmniCamera(
+    const int width,
+    const int height,
+    const std::string& calibfile,
+    const Sophus::SE3& T_imu_cam)
+  : AbstractCamera(width, height, T_imu_cam)
 {
+  //
+  // TODO: Read parameters from YAML file
+  //
+
   double *pol        = ocamModel.pol;
   double *invpol     = ocamModel.invpol;
   double *xc         = &ocamModel.xc;
@@ -21,18 +31,18 @@ OmniCamera( string calibFile )
   double *c          = &ocamModel.c;
   double *d          = &ocamModel.d;
   double *e          = &ocamModel.e;
-  int *width         = &ocamModel.width;
-  int *height        = &ocamModel.height;
+  int *cam_width         = &ocamModel.width;
+  int *cam_height        = &ocamModel.height;
   int *length_pol    = &ocamModel.length_pol;
   int *length_invpol = &ocamModel.length_invpol;
   FILE *f;
   char buf[CMV_MAX_BUF];
   int i;
 
-  printf("Initialize OmniCamera: Read Calibration %s\n", calibFile.c_str());
+  printf("Initialize OmniCamera: Read Calibration %s\n", calibfile.c_str());
 
   //Open file
-  if( !( f = fopen( (char*) calibFile.c_str(), "r" ) ) )
+  if( !( f = fopen( (char*) calibfile.c_str(), "r" ) ) )
   {
     printf("Initialize OmniCamera: Cannot read calibration file.");
     return;
@@ -67,21 +77,19 @@ OmniCamera( string calibFile )
   //Read image size
   dummy = fgets( buf, CMV_MAX_BUF, f );
   result = fscanf( f, "\n" );
-  result = fscanf( f, "%d %d", height, width );
+  result = fscanf( f, "%d %d", cam_height, cam_width );
 
   fclose(f);
 
-  width_ = *width;
-  height_ = *height;
+  assert(width_ == *cam_width);
+  assert(height_ == *cam_height);
   error_multiplier_ = computeErrorMultiplier();
 }
 
-OmniCamera::
-~OmniCamera()
+OmniCamera::~OmniCamera()
 {}
 
-Vector3d OmniCamera::
-cam2world(const double& u, const double& v) const
+Vector3d OmniCamera::cam2world(const double& u, const double& v) const
 {
   Vector3d xyz;
 
@@ -114,14 +122,12 @@ cam2world(const double& u, const double& v) const
   return xyz;
 }
 
-Vector3d OmniCamera::
-cam2world (const Vector2d& px) const
+Vector3d OmniCamera::cam2world (const Vector2d& px) const
 {
   return cam2world(px[0], px[1]);
 }
 
-Vector2d OmniCamera::
-world2cam(const Vector3d& xyz_c) const
+Vector2d OmniCamera::world2cam(const Vector3d& xyz_c) const
 {
   Vector2d uv;
 
@@ -170,14 +176,12 @@ world2cam(const Vector3d& xyz_c) const
   return uv;
 }
 
-Vector2d OmniCamera::
-world2cam(const Vector2d& uv) const
+Vector2d OmniCamera::world2cam(const Vector2d& uv) const
 {
   return world2cam(unproject2d(uv).normalized());
 }
 
-double OmniCamera::
-computeErrorMultiplier()
+double OmniCamera::computeErrorMultiplier()
 {
   Vector3d vector1 = cam2world( .5*width_, .5*height_ );
   Vector3d vector2 = cam2world( .5*width_ + .5, .5*height_ );

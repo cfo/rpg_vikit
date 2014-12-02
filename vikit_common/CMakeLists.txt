@@ -1,9 +1,11 @@
-OPTION(VIKIT_BUILD_GPL_LICENSED_CODE "Should gpl licensed code be build in the library" ON)
-OPTION(VIKIT_USE_ROS "Is ROS available?" ON)
-
 SET(PROJECT_NAME vikit_common)
 PROJECT(${PROJECT_NAME})
 CMAKE_MINIMUM_REQUIRED (VERSION 2.8.3)
+
+# Options
+OPTION(VIKIT_BUILD_GPL_LICENSED_CODE "Should GPL licensed code be build in the library" ON)
+OPTION(VIKIT_USE_ROS "Is ROS available?" ON)
+
 SET(CMAKE_BUILD_TYPE Release) # Release, RelWithDebInfo
 SET(CMAKE_VERBOSE_MAKEFILE OFF)
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/CMakeModules/")
@@ -34,15 +36,17 @@ INCLUDE_DIRECTORIES(
 )
 
 IF(VIKIT_USE_ROS)
-  FIND_PACKAGE(catkin REQUIRED COMPONENTS roscpp cmake_modules eigen_catkin)
+  FIND_PACKAGE(catkin REQUIRED COMPONENTS roscpp cmake_modules eigen_catkin yaml_cpp_catkin)
   LIST(APPEND INCLUDE_DIRECTORIES ${catkin_INCLUDE_DIRS})
   catkin_package(
     DEPENDS Eigen OpenCV Sophus
-    CATKIN_DEPENDS roscpp eigen_catkin
+    CATKIN_DEPENDS roscpp eigen_catkin yaml_cpp_catkin
     INCLUDE_DIRS include
     LIBRARIES ${PROJECT_NAME}
   )
+  ADD_DEFINITIONS(-DVIKIT_USE_YAML)
 ELSE()
+  # TODO, include YAML
   SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
   SET(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
   FIND_PACKAGE(Eigen REQUIRED)
@@ -51,6 +55,7 @@ ENDIF()
 
 # Set source files
 LIST(APPEND VIKIT_SOURCEFILES
+  src/abstract_camera.cpp
   src/atan_camera.cpp
   src/omni_camera.cpp
   src/math_utils.cpp

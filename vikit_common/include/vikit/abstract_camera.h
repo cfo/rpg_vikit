@@ -5,73 +5,86 @@
  *      Author: cforster
  */
 
-#ifndef ABSTRACT_CAMERA_H_
-#define ABSTRACT_CAMERA_H_
+#ifndef VIKIT_ABSTRACT_CAMERA_H_
+#define VIKIT_ABSTRACT_CAMERA_H_
 
 #include <Eigen/Core>
+#include <sophus/se3.h>
+#include <memory> // std::shared_ptr
 
-namespace vk
-{
-
-using namespace std;
-using namespace Eigen;
+namespace vk {
 
 class AbstractCamera
 {
-protected:
-
-  int width_;   // TODO cannot be const because of omni-camera model
-  int height_;
-
 public:
 
-  AbstractCamera() {}; // need this constructor for omni camera
-  AbstractCamera(int width, int height) : width_(width), height_(height) {};
+  typedef std::shared_ptr<AbstractCamera> Ptr;
 
-  virtual ~AbstractCamera() {};
+  const int width_;               ///< Width of the image in pixels.
+  const int height_;              ///< Height of the image in pixels.
+  const Sophus::SE3 T_imu_cam_;   ///< Relative transformation between camera and Inertial Measurement Unit (IMU).
+  const Sophus::SE3 T_cam_imu_;   ///< Relative transformation between IMU and camera.
+
+  /// Default constructor.
+  AbstractCamera(
+      const int width,
+      const int height,
+      const Sophus::SE3& T_imu_cam =
+        Sophus::SE3(Eigen::Matrix3d::Identity(), Eigen::Vector3d::Zero()));
+
+  /// Destructor.
+  virtual ~AbstractCamera();
+
+  /// Camera Factory: Load camera from file.
+  static AbstractCamera::Ptr loadCameraFromYamlFile(
+      const std::string& filename,
+      const bool verbose);
 
   /// Project from pixels to world coordiantes. Returns a bearing vector of unit length.
-  virtual Vector3d
-  cam2world(const double& x, const double& y) const = 0;
+  virtual Eigen::Vector3d cam2world(const double& x, const double& y) const = 0;
 
   /// Project from pixels to world coordiantes. Returns a bearing vector of unit length.
-  virtual Vector3d
-  cam2world(const Vector2d& px) const = 0;
+  virtual Eigen::Vector3d cam2world(const Eigen::Vector2d& px) const = 0;
 
-  virtual Vector2d
-  world2cam(const Vector3d& xyz_c) const = 0;
+  /// Project from world coordinates to camera coordinates.
+  virtual Eigen::Vector2d world2cam(const Eigen::Vector3d& xyz_c) const = 0;
 
-  /// projects unit plane coordinates to camera coordinates
-  virtual Vector2d
-  world2cam(const Vector2d& uv) const = 0;
+  /// Projects unit plane coordinates to camera coordinates.
+  virtual Eigen::Vector2d world2cam(const Eigen::Vector2d& uv) const = 0;
 
-  virtual double
-  errorMultiplier2() const = 0;
+  /// Equivalent to focal length for projective cameras and factor for
+  /// omni-directional cameras that transforms unit-plane error to pixel-error.
+  virtual double errorMultiplier2() const = 0;
 
-  virtual double
-  errorMultiplier() const = 0;
+  /// Square root of errorMultiplier2, used to transform angular error in
+  /// omni-directional cameras to pixel error.
+  virtual double errorMultiplier() const = 0;
 
-  inline int width() const { return width_; }
+  /// Width of the image in pixels.
+  inline const int& width() const { return width_; }
 
-  inline int height() const { return height_; }
+  /// Height of the image in pixels.
+  inline const int& height() const { return height_; }
 
-  inline bool isInFrame(const Vector2i & obs, int boundary=0) const
+  /// Check if a pixel is within the image boundaries
+  inline bool isInFrame(const Eigen::Vector2i& px, const int boundary=0) const
   {
-    if(obs[0]>=boundary && obs[0]<width()-boundary
-        && obs[1]>=boundary && obs[1]<height()-boundary)
+    if(px[0] >= boundary && px[0] < width_-boundary
+        && px[1] >= boundary && px[1] < height_-boundary)
       return true;
     return false;
   }
 
-  inline bool isInFrame(const Vector2i &obs, int boundary, int level) const
+  /// Check if a pixel is within image boundaries at specified pyramid level
+  inline bool isInFrame(const Eigen::Vector2i& px, const int boundary, const int level) const
   {
-    if(obs[0] >= boundary && obs[0] < width()/(1<<level)-boundary
-        && obs[1] >= boundary && obs[1] <height()/(1<<level)-boundary)
+    if(px[0] >= boundary && px[0] < width_/(1<<level)-boundary
+        && px[1] >= boundary && px[1] <height_/(1<<level)-boundary)
       return true;
     return false;
   }
 };
 
-} // end namespace CSfM
+} // end namespace vikit
 
-#endif /* ABSTRACT_CAMERA_H_ */
+#endif // VIKIT_ABSTRACT_CAMERA_H_
