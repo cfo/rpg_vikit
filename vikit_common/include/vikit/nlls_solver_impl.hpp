@@ -257,9 +257,9 @@ void vk::NLLSSolver<D, T>::setRobustCostFunction(
       break;
     default:
       if(verbose_)
-        printf("Using Unit Scale Estimator\n");
-      scale_estimator_.reset(new robust_cost::UnitScaleEstimator());
-      use_weights_=false;
+        printf("Scale Estimator not set\n");
+      scale_estimator_ = nullptr;
+      use_weights_ = false;
   }
 
   switch(weight_function)
@@ -276,8 +276,9 @@ void vk::NLLSSolver<D, T>::setRobustCostFunction(
       break;
     default:
       if(verbose_)
-        printf("Using Unit Weight Function\n");
-      weight_function_.reset(new robust_cost::UnitWeightFunction());
+        printf("Weight Function not set\n");
+      weight_function_ = nullptr;
+      use_weights_ = false;
   }
 }
 

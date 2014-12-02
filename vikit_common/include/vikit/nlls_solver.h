@@ -129,8 +129,8 @@ public:
     iter_(0),
     use_weights_(false),
     scale_(0.0),
-    scale_estimator_(NULL),
-    weight_function_(NULL)
+    scale_estimator_(nullptr),
+    weight_function_(nullptr)
   { }
 
   virtual ~NLLSSolver() {}
