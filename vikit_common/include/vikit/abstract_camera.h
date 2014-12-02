@@ -22,6 +22,7 @@ public:
 
   const int width_;               ///< Width of the image in pixels.
   const int height_;              ///< Height of the image in pixels.
+  const std::string name_;        ///< Camera name "e.g. forward_facing, cam0"
   const Sophus::SE3 T_imu_cam_;   ///< Relative transformation between camera and Inertial Measurement Unit (IMU).
   const Sophus::SE3 T_cam_imu_;   ///< Relative transformation between IMU and camera.
 
@@ -29,8 +30,8 @@ public:
   AbstractCamera(
       const int width,
       const int height,
-      const Sophus::SE3& T_imu_cam =
-        Sophus::SE3(Eigen::Matrix3d::Identity(), Eigen::Vector3d::Zero()));
+      const std::string& cam_name,
+      const Sophus::SE3& T_imu_cam);
 
   /// Destructor.
   virtual ~AbstractCamera();
@@ -38,6 +39,7 @@ public:
   /// Camera Factory: Load camera from file.
   static AbstractCamera::Ptr loadCameraFromYamlFile(
       const std::string& filename,
+      const std::string& cam_name,
       const bool verbose);
 
   /// Project from pixels to world coordiantes. Returns a bearing vector of unit length.
@@ -60,11 +62,17 @@ public:
   /// omni-directional cameras to pixel error.
   virtual double errorMultiplier() const = 0;
 
+  /// Print camera info.
+  virtual void print(const std::string& s = "Camera: ") const = 0;
+
   /// Width of the image in pixels.
   inline const int& width() const { return width_; }
 
   /// Height of the image in pixels.
   inline const int& height() const { return height_; }
+
+  /// Name of the camera
+  inline const std::string& name() const { return name_; }
 
   /// Check if a pixel is within the image boundaries
   inline bool isInFrame(const Eigen::Vector2i& px, const int boundary=0) const

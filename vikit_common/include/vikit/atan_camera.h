@@ -49,25 +49,30 @@ private:
 public:
 
   ATANCamera(
-      const double width,
-      const double height,
-      const double fx,
-      const double fy,
-      const double dx,
-      const double dy,
+      const double width, const double height,
+      const double fx, const double fy,
+      const double dx, const double dy,
       const double s,
+      const std::string& name = "cam0",
       const Sophus::SE3& T_imu_cam =
         Sophus::SE3(Eigen::Matrix3d::Identity(), Eigen::Vector3d::Zero()));
 
   virtual ~ATANCamera();
 
+  /// Project from pixels to world coordiantes. Returns a bearing vector of unit length.
   virtual Eigen::Vector3d cam2world(const double& x, const double& y) const;
 
+  /// Project from pixels to world coordiantes. Returns a bearing vector of unit length.
   virtual Eigen::Vector3d cam2world(const Eigen::Vector2d& px) const;
 
+  /// Project from world coordinates to camera coordinates.
   virtual Eigen::Vector2d world2cam(const Eigen::Vector3d& xyz_c) const;
 
+  /// Projects unit plane coordinates to camera coordinates.
   virtual Eigen::Vector2d world2cam(const Eigen::Vector2d& uv) const;
+
+  /// Print camera info.
+  virtual void print(const std::string& s = "Camera: ") const;
 
   const Eigen::Vector2d focal_length() const
   {

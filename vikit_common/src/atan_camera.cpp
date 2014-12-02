@@ -19,15 +19,13 @@ namespace vk {
 using namespace Eigen;
 
 ATANCamera::ATANCamera(
-    const double width,
-    const double height,
-    const double fx,
-    const double fy,
-    const double cx,
-    const double cy,
+    const double width, const double height,
+    const double fx, const double fy,
+    const double cx, const double cy,
     const double s,
+    const std::string& cam_name,
     const Sophus::SE3& T_imu_cam)
-  : AbstractCamera(width, height, T_imu_cam)
+  : AbstractCamera(width, height, cam_name, T_imu_cam)
   , fx_(width*fx)
   , fy_(height*fy)
   , fx_inv_(1.0/fx_)
@@ -88,4 +86,23 @@ Vector2d ATANCamera::world2cam(const Vector2d& uv) const
                   cy_ + fy_ * dist_cam[1]);
 }
 
-} /* end vk */
+void ATANCamera::print(const std::string& s) const
+{
+  std::cout << s << std::endl
+            << "  type = ATAN " << std::endl
+            << "  name = " << name_ << std::endl
+            << "  size = [" << width_ << ", " << height_ << "]" << std::endl
+            << "  focal_length =  [" << fx_ << ", " << fy_ << "]" << std::endl
+            << "  center = [" << cx_ << ", " << cy_ << "]" << std::endl
+            << "  distortion = " << s_ << std::endl
+            << "  T_cam_imu = [ tx: " << T_cam_imu_.translation().x()
+                          << ", ty: " << T_cam_imu_.translation().y()
+                          << ", tz: " << T_cam_imu_.translation().z()
+                          << ", qx: " << T_cam_imu_.unit_quaternion().x()
+                          << ", qy: " << T_cam_imu_.unit_quaternion().y()
+                          << ", qz: " << T_cam_imu_.unit_quaternion().z()
+                          << ", qw: " << T_cam_imu_.unit_quaternion().w()
+                          << "]" << std::endl;
+}
+
+} // namespace vk

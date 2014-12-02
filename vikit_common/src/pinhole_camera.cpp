@@ -5,6 +5,7 @@
  *      Author: cforster
  */
 
+#include <iostream>
 #include <vikit/pinhole_camera.h>
 #include <vikit/math_utils.h>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -19,8 +20,9 @@ PinholeCamera::PinholeCamera(
     const double cx, const double cy,
     const double d0, const double d1, const double d2,
     const double d3, const double d4,
+    const std::string& cam_name,
     const Sophus::SE3& T_imu_cam)
-  : AbstractCamera(width, height, T_imu_cam),
+  : AbstractCamera(width, height, cam_name, T_imu_cam),
     fx_(fx), fy_(fy), cx_(cx), cy_(cy),
     distortion_(std::abs(d0) > 0.0000001),
     undist_map1_(height_, width_, CV_16SC2),
@@ -112,6 +114,29 @@ void PinholeCamera::undistortImage(const cv::Mat& raw, cv::Mat& rectified)
     cv::remap(raw, rectified, undist_map1_, undist_map2_, cv::INTER_LINEAR);
   else
     rectified = raw.clone();
+}
+
+void PinholeCamera::print(const std::string& s) const
+{
+  std::cout << s << std::endl
+            << "  type = Pinhole " << std::endl
+            << "  name = " << name_ << std::endl
+            << "  size = [" << width_ << ", " << height_ << "]" << std::endl
+            << "  focal_length =  [" << fx_ << ", " << fy_ << "]" << std::endl
+            << "  center = [" << cx_ << ", " << cy_ << "]" << std::endl
+            << "  distortion = [" << d_[0] << ", "
+                                  << d_[1] << ", "
+                                  << d_[2] << ", "
+                                  << d_[3] << ", "
+                                  << d_[4] << "]" << std::endl
+            << "  T_cam_imu = [ tx: " << T_cam_imu_.translation().x()
+                          << ", ty: " << T_cam_imu_.translation().y()
+                          << ", tz: " << T_cam_imu_.translation().z()
+                          << ", qx: " << T_cam_imu_.unit_quaternion().x()
+                          << ", qy: " << T_cam_imu_.unit_quaternion().y()
+                          << ", qz: " << T_cam_imu_.unit_quaternion().z()
+                          << ", qw: " << T_cam_imu_.unit_quaternion().w()
+                          << "]" << std::endl;
 }
 
 } // end namespace vk

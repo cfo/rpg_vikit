@@ -5,6 +5,7 @@
  *      Author: laurent kneip
  */
 
+#include <iostream>
 #include <stdio.h>
 #include <math.h>
 #include <vikit/omni_camera.h>
@@ -17,8 +18,9 @@ OmniCamera::OmniCamera(
     const int width,
     const int height,
     const std::string& calibfile,
+    const std::string& cam_name,
     const Sophus::SE3& T_imu_cam)
-  : AbstractCamera(width, height, T_imu_cam)
+  : AbstractCamera(width, height, cam_name, T_imu_cam)
 {
   //
   // TODO: Read parameters from YAML file
@@ -198,6 +200,22 @@ double OmniCamera::computeErrorMultiplier()
   double factor2 = .5/( 1 - vector1.dot(vector2) );
 
   return ( factor2 + factor1 ) * .5;
+}
+
+void OmniCamera::print(const std::string& s) const
+{
+  std::cout << s << std::endl
+            << "  type = OCam " << std::endl
+            << "  name = " << name_ << std::endl
+            << "  size = [" << width_ << ", " << height_ << "]" << std::endl
+            << "  T_cam_imu = [ tx: " << T_cam_imu_.translation().x()
+                          << ", ty: " << T_cam_imu_.translation().y()
+                          << ", tz: " << T_cam_imu_.translation().z()
+                          << ", qx: " << T_cam_imu_.unit_quaternion().x()
+                          << ", qy: " << T_cam_imu_.unit_quaternion().y()
+                          << ", qz: " << T_cam_imu_.unit_quaternion().z()
+                          << ", qw: " << T_cam_imu_.unit_quaternion().w()
+                          << "]" << std::endl;
 }
 
 } // end namespace vk

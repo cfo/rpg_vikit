@@ -35,6 +35,7 @@ public:
       const double cx, const double cy,
       const double d0=0.0, const double d1=0.0, const double d2=0.0,
       const double d3=0.0, const double d4=0.0,
+      const std::string& cam_name = "cam0",
       const Sophus::SE3& T_imu_cam =
         Sophus::SE3(Eigen::Matrix3d::Identity(), Eigen::Vector3d::Zero()));
 
@@ -42,12 +43,16 @@ public:
 
   void initUnistortionMap();
 
+  /// Project from pixels to world coordiantes. Returns a bearing vector of unit length.
   virtual Eigen::Vector3d cam2world(const double& x, const double& y) const;
 
+  /// Project from pixels to world coordiantes. Returns a bearing vector of unit length.
   virtual Eigen::Vector3d cam2world(const Eigen::Vector2d& px) const;
 
+  /// Project from world coordinates to camera coordinates.
   virtual Eigen::Vector2d world2cam(const Eigen::Vector3d& xyz_c) const;
 
+  /// Projects unit plane coordinates to camera coordinates.
   virtual Eigen::Vector2d world2cam(const Eigen::Vector2d& uv) const;
 
   const Eigen::Vector2d focal_length() const
@@ -64,6 +69,9 @@ public:
   {
     return std::abs(4.0*fx_*fy_);
   }
+
+  /// Print camera info.
+  virtual void print(const std::string& s = "Camera: ") const;
 
   inline const Eigen::Matrix3d& K() const { return K_; }
   inline const Eigen::Matrix3d& K_inv() const { return K_inv_; }
