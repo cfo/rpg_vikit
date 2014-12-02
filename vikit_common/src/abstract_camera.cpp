@@ -118,7 +118,7 @@ AbstractCamera::Ptr AbstractCamera::loadCameraFromYamlFile(
   }
   else
   {
-    std::cerr << "Camera model '"<< cam_model << "'dot exist." << std::endl;
+    std::cerr << "Camera model '"<< cam_model << "' doesn't exist." << std::endl;
     return nullptr;
   }
 
