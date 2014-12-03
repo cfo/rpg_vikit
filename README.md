@@ -5,7 +5,9 @@ Far from stable.
 
 #### Install Instructions
 
-You need YAML-CPP
+##### Install YAML-CPP
 
-    git clone  https://github.com/ethz-asl/yaml_cpp_catkin.git
+Download latest yaml-cpp from https://code.google.com/p/yaml-cpp/
+
+In the CMake file, on line 143, add -fPIC.
 
