@@ -14,12 +14,12 @@ ELSE()
 ENDIF()
 
 # Add catkin and required ROS packages
-FIND_PACKAGE(catkin REQUIRED COMPONENTS roscpp vikit_common visualization_msgs tf cmake_modules)
+FIND_PACKAGE(catkin REQUIRED COMPONENTS roscpp vikit_common visualization_msgs tf eigen_catkin)
 
 # Add plain cmake packages 
 FIND_PACKAGE(OpenCV REQUIRED)
 FIND_PACKAGE(Sophus REQUIRED)
-FIND_PACKAGE(Eigen REQUIRED)
+#FIND_PACKAGE(Eigen REQUIRED)
 
 # Include dirs
 INCLUDE_DIRECTORIES(
@@ -27,13 +27,13 @@ INCLUDE_DIRECTORIES(
   ${OpenCV_INCLUDE_DIRS}
   ${Sophus_INCLUDE_DIRS}
   ${catkin_INCLUDE_DIRS}
-  ${Eigen_INCLUDE_DIRS}
+  #${Eigen_INCLUDE_DIRS}
 )
 
 # Describe catkin Project
 catkin_package(
-    DEPENDS OpenCV Sophus Eigen
-    CATKIN_DEPENDS roscpp visualization_msgs tf vikit_common
+    DEPENDS OpenCV Sophus
+    CATKIN_DEPENDS roscpp visualization_msgs tf vikit_common eigen_catkin
     INCLUDE_DIRS include
     LIBRARIES ${PROJECT_NAME}
 )
