@@ -5,6 +5,10 @@ Far from stable.
 
 #### Install Instructions
 
+##### Install `sophus_catkin`
+
+    git clone http://github.com/cfo/sophus_catkin.git
+
 ##### Install YAML-CPP
 
 Download latest yaml-cpp from https://code.google.com/p/yaml-cpp/

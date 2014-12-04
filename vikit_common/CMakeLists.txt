@@ -26,8 +26,6 @@ SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} -O3 -fsee -fomit-frame-pointer -
 
 # Add plain cmake packages 
 FIND_PACKAGE(OpenCV REQUIRED)
-FIND_PACKAGE(Sophus REQUIRED)
-#FIND_PACKAGE(Eigen REQUIRED)
 FIND_PACKAGE(YamlCpp REQUIRED)
 
 MESSAGE(STATUS "YamlCpp: ${YAMLCPP_INCLUDE_DIR}" )
@@ -37,15 +35,12 @@ MESSAGE(STATUS "YamlCpp: ${YAMLCPP_LIBRARY}" )
 INCLUDE_DIRECTORIES(
   include
   ${OpenCV_INCLUDE_DIRS}
-  ${Sophus_INCLUDE_DIRS}
-  #${Eigen_INCLUDE_DIRS}
   ${YAMLCPP_INCLUDE_DIR}
 )
 
 # Set link libraries
 LIST(APPEND VIKIT_LINK_LIBS 
   ${OpenCV_LIBS}
-  ${Sophus_LIBRARIES}
   ${YAMLCPP_LIBRARY}
 )
 
@@ -53,12 +48,12 @@ LIST(APPEND VIKIT_LINK_LIBS
 ADD_DEFINITIONS(-DVIKIT_USE_YAML)
 
 IF(VIKIT_USE_ROS)
-  FIND_PACKAGE(catkin REQUIRED COMPONENTS roscpp eigen_catkin)
-  LIST(APPEND INCLUDE_DIRECTORIES ${catkin_INCLUDE_DIRS})
+  FIND_PACKAGE(catkin REQUIRED COMPONENTS roscpp eigen_catkin sophus_catkin)
+  INCLUDE_DIRECTORIES(${catkin_INCLUDE_DIRS})
   LIST(APPEND VIKIT_LINK_LIBS ${catkin_LIBRARIES})
   catkin_package(
-    DEPENDS OpenCV Sophus YamlCpp
-    CATKIN_DEPENDS roscpp eigen_catkin
+    DEPENDS OpenCV YamlCpp
+    CATKIN_DEPENDS roscpp eigen_catkin sophus_catkin
     INCLUDE_DIRS include 
     LIBRARIES ${PROJECT_NAME}
   )
