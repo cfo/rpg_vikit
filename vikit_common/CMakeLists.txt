@@ -24,36 +24,32 @@ ELSE()
 ENDIF()
 SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} -O3 -fsee -fomit-frame-pointer -fno-signed-zeros -fno-math-errno -funroll-loops")
 
-# Add plain cmake packages 
+# Add plain cmake packages
 FIND_PACKAGE(OpenCV REQUIRED)
-FIND_PACKAGE(YamlCpp REQUIRED)
-
-MESSAGE(STATUS "YamlCpp: ${YAMLCPP_INCLUDE_DIR}" )
-MESSAGE(STATUS "YamlCpp: ${YAMLCPP_LIBRARY}" )
 
 # Include dirs
 INCLUDE_DIRECTORIES(
   include
   ${OpenCV_INCLUDE_DIRS}
-  ${YAMLCPP_INCLUDE_DIR}
 )
 
 # Set link libraries
 LIST(APPEND VIKIT_LINK_LIBS 
   ${OpenCV_LIBS}
-  ${YAMLCPP_LIBRARY}
 )
 
 # TODO, make option:
 ADD_DEFINITIONS(-DVIKIT_USE_YAML)
 
 IF(VIKIT_USE_ROS)
-  FIND_PACKAGE(catkin REQUIRED COMPONENTS roscpp eigen_catkin sophus_catkin)
+  FIND_PACKAGE(catkin REQUIRED COMPONENTS
+    roscpp eigen_catkin sophus_catkin yaml_cpp_catkin
+  )
   INCLUDE_DIRECTORIES(${catkin_INCLUDE_DIRS})
   LIST(APPEND VIKIT_LINK_LIBS ${catkin_LIBRARIES})
   catkin_package(
     DEPENDS OpenCV YamlCpp
-    CATKIN_DEPENDS roscpp eigen_catkin sophus_catkin
+    CATKIN_DEPENDS roscpp eigen_catkin sophus_catkin yaml_cpp_catkin
     INCLUDE_DIRS include 
     LIBRARIES ${PROJECT_NAME}
   )
