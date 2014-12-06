@@ -64,6 +64,11 @@ AbstractCamera::Ptr AbstractCamera::loadCameraFromYamlFile(
   std::string cam_model = data["cam_model"].as<std::string>();
   if(cam_model == "Pinhole")
   {
+    double d0 = data["cam_d0"].IsDefined() ? data["cam_d0"].as<double>() : 0.0;
+    double d1 = data["cam_d1"].IsDefined() ? data["cam_d1"].as<double>() : 0.0;
+    double d2 = data["cam_d2"].IsDefined() ? data["cam_d2"].as<double>() : 0.0;
+    double d3 = data["cam_d3"].IsDefined() ? data["cam_d3"].as<double>() : 0.0;
+    double d4 = data["cam_d4"].IsDefined() ? data["cam_d4"].as<double>() : 0.0;
     cam.reset(new vk::PinholeCamera(
                 data["cam_width"].as<int>(),
                 data["cam_height"].as<int>(),
@@ -71,11 +76,7 @@ AbstractCamera::Ptr AbstractCamera::loadCameraFromYamlFile(
                 data["cam_fy"].as<double>(),
                 data["cam_cx"].as<double>(),
                 data["cam_cy"].as<double>(),
-                data["cam_d0"].as<double>(),
-                data["cam_d1"].as<double>(),
-                data["cam_d2"].as<double>(),
-                data["cam_d3"].as<double>(),
-                data["cam_d4"].as<double>(),
+                d0, d1, d2, d3, d4,
                 cam_name,
                 T_cam_imu.inverse()));
   }
