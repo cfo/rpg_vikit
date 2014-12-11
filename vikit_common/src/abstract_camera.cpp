@@ -2,6 +2,7 @@
 #include <iostream>
 #include <vikit/abstract_camera.h>
 #include <vikit/pinhole_camera.h>
+#include <vikit/pinhole_equidistant_camera.h>
 #include <vikit/atan_camera.h>
 #include <vikit/omni_camera.h>
 #include <yaml-cpp/yaml.h>
@@ -77,6 +78,22 @@ AbstractCamera::Ptr AbstractCamera::loadCameraFromYamlFile(
                 data["cam_cx"].as<double>(),
                 data["cam_cy"].as<double>(),
                 d0, d1, d2, d3, d4,
+                cam_name,
+                T_cam_imu.inverse()));
+  }
+  if(cam_model == "PinholeEquidistant")
+  {
+    cam.reset(new vk::PinholeEquidistantCamera(
+                data["cam_width"].as<int>(),
+                data["cam_height"].as<int>(),
+                data["cam_fx"].as<double>(),
+                data["cam_fy"].as<double>(),
+                data["cam_cx"].as<double>(),
+                data["cam_cy"].as<double>(),
+                data["cam_d0"].as<double>(),
+                data["cam_d1"].as<double>(),
+                data["cam_d2"].as<double>(),
+                data["cam_d3"].as<double>(),
                 cam_name,
                 T_cam_imu.inverse()));
   }

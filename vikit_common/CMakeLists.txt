@@ -69,6 +69,7 @@ LIST(APPEND VIKIT_SOURCEFILES
   src/robust_cost.cpp
   src/user_input_thread.cpp
   src/pinhole_camera.cpp
+  src/pinhole_equidistant_camera.cpp
 )
 
 # Set header files
@@ -85,6 +86,7 @@ LIST(APPEND VIKIT_HEADERFILES
   include/vikit/patch_score.h
   include/vikit/performance_monitor.h
   include/vikit/pinhole_camera.h
+  include/vikit/pinhole_equidistant_camera.h
   include/vikit/ringbuffer.h
   include/vikit/robust_cost.h
   include/vikit/sample.h
