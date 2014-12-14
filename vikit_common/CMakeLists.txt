@@ -70,6 +70,8 @@ LIST(APPEND VIKIT_SOURCEFILES
   src/user_input_thread.cpp
   src/pinhole_camera.cpp
   src/pinhole_equidistant_camera.cpp
+  src/homography.cpp
+
 )
 
 # Set header files
@@ -94,16 +96,15 @@ LIST(APPEND VIKIT_HEADERFILES
   include/vikit/user_input_thread.h
   include/vikit/vision.h
   include/vikit/homography_decomp.h
+  include/vikit/homography.h
 )
 
 IF(VIKIT_BUILD_GPL_LICENSED_CODE)
 	LIST(APPEND VIKIT_SOURCEFILES
-  	src/homography.cpp
 	)
 	# Set header files
 	LIST(APPEND VIKIT_HEADERFILES
 	  include/vikit/file_reader.h
-	  include/vikit/homography.h
 	)
 ENDIF()
 
@@ -111,7 +112,11 @@ ENDIF()
 ADD_LIBRARY(${PROJECT_NAME} SHARED ${VIKIT_SOURCEFILES} ${VIKIT_HEADERFILES})
 TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${VIKIT_LINK_LIBS})
 
-# Tests
+# Unit tests
+CATKIN_ADD_GTEST(homography test/test_homography.cpp)
+TARGET_LINK_LIBRARIES(homography svo gtest)
+
+# Other tests
 ADD_EXECUTABLE(vikit_test_timer test/test_timer.cpp)
 TARGET_LINK_LIBRARIES(vikit_test_timer ${PROJECT_NAME})
 
@@ -123,10 +128,6 @@ TARGET_LINK_LIBRARIES(vikit_test_triangulation ${PROJECT_NAME})
 
 ADD_EXECUTABLE(vikit_test_patch_score test/test_patch_score.cpp)
 TARGET_LINK_LIBRARIES(vikit_test_patch_score ${PROJECT_NAME})
-
-ADD_EXECUTABLE(vikit_test_homography test/test_homography.cpp)
-TARGET_LINK_LIBRARIES(vikit_test_homography ${PROJECT_NAME})
-
 
 ################################################################################
 # Create the vikit_commonConfig.cmake file for other cmake projects.

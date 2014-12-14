@@ -16,57 +16,33 @@
 #ifndef VIKIT_HOMOGRAPHY_H_
 #define VIKIT_HOMOGRAPHY_H_
 
-#include <vikit/math_utils.h>
-#include <Eigen/SVD>
+#include <vector>
+#include <Eigen/Core>
 
 namespace vk {
 
-struct HomographyDecomposition
+struct Homography
 {
-  Vector3d t;
-  Matrix3d R;
-  double d;
-  Vector3d n;
-
-  // Resolved  Composition
-  Sophus::SE3 T; //!< second from first
-  int score;
+  Eigen::Vector3d t_cur_ref;
+  Eigen::Matrix3d R_cur_ref;
+  Eigen::Vector3d n_cur;
+  double score;
+  Homography()
+    : t_cur_ref()
+    , R_cur_ref()
+    , n_cur()
+    , score(0.0)
+  {}
 };
 
-class Homography
-{
-public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
-  Homography(
-         const std::vector<Vector2d, aligned_allocator<Vector2d> >& _fts1,
-         const std::vector<Vector2d, aligned_allocator<Vector2d> >& _fts2,
-         double error_multiplier2,
-         double thresh_in_px);
-
-  void calcFromPlaneParams(
-          const Vector3d& normal,
-          const Vector3d& point_on_plane);
-
-  void calcFromMatches();
-
-  size_t computeMatchesInliers();
-
-  bool computeSE3fromMatches();
-
-  bool decompose();
-
-  void findBestDecomposition ();
-
-  double thresh;
-  double error_multiplier2;
-  const std::vector<Vector2d, aligned_allocator<Vector2d> >& fts_c1; //!< Features on first image on unit plane
-  const std::vector<Vector2d, aligned_allocator<Vector2d> >& fts_c2; //!< Features on second image on unit plane
-  std::vector<bool> inliers;
-  SE3 T_c2_from_c1;             //!< Relative translation and rotation of two images
-  Matrix3d H_c2_from_c1;                   //!< Homography
-  std::vector<HomographyDecomposition> decompositions;
-};
+/// Estimates Homography from corresponding feature bearing vectors.
+/// Score of returned homography is set to the number of inliers.
+Homography estimateHomography(
+    const std::vector<Eigen::Vector3d, Eigen::aligned_allocator<Eigen::Vector3d> >& f_cur,
+    const std::vector<Eigen::Vector3d, Eigen::aligned_allocator<Eigen::Vector3d> >& f_ref,
+    const double focal_length,
+    const double reproj_error_thresh,
+    const size_t min_num_inliers);
 
 } // namespace vk
 
