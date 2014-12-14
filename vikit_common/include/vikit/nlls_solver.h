@@ -43,8 +43,8 @@ class NLLSSolver {
 public:
   typedef T ModelType;
   enum Method{GaussNewton, LevenbergMarquardt};
-  enum ScaleEstimatorType{UnitScale, TDistScale, MADScale, NormalScale};
-  enum WeightFunctionType{UnitWeight, TDistWeight, TukeyWeight, HuberWeight};
+  enum ScaleEstimatorType{UnitScale, MADScale, NormalScale};
+  enum WeightFunctionType{UnitWeight, TukeyWeight, HuberWeight};
 
 protected:
   Matrix<double, D, D>  H_;       //!< Hessian approximation
@@ -74,7 +74,7 @@ protected:
   update                (const ModelType& old_model, ModelType& new_model) = 0;
 
   virtual void
-  applyPrior            (const ModelType& current_model) { }
+  applyPrior            (const ModelType& /*current_model*/) { }
 
   virtual void
   startIteration        () { }
@@ -129,8 +129,8 @@ public:
     iter_(0),
     use_weights_(false),
     scale_(0.0),
-    scale_estimator_(NULL),
-    weight_function_(NULL)
+    scale_estimator_(nullptr),
+    weight_function_(nullptr)
   { }
 
   virtual ~NLLSSolver() {}

@@ -257,8 +257,8 @@ void publishFrameMarker(ros::Publisher pub,
   point.y = static_cast<float>(pos.y() + marker_scale*rot(1, 2)); // Draw arrow in z-direction
   point.z = static_cast<float>(pos.z() + marker_scale*rot(2, 2)); // Draw arrow in z-direction
   marker.points.push_back(point);
-  marker.scale.x = 0.5*marker_scale;
-  marker.scale.y = 0.5*marker_scale;
+  marker.scale.x = 0.2*marker_scale;
+  marker.scale.y = 0.2*marker_scale;
   marker.color.a = 1.0;
   marker.color.r = 0.0;
   marker.color.g = 0.0;

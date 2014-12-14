@@ -1,15 +1,19 @@
 SET(PROJECT_NAME vikit_common)
 PROJECT(${PROJECT_NAME})
 CMAKE_MINIMUM_REQUIRED (VERSION 2.8.3)
+
+# Options
+OPTION(VIKIT_BUILD_GPL_LICENSED_CODE "Should GPL licensed code be build in the library" ON)
+OPTION(VIKIT_USE_ROS "Is ROS available?" ON)
+
 SET(CMAKE_BUILD_TYPE Release) # Release, RelWithDebInfo
 SET(CMAKE_VERBOSE_MAKEFILE OFF)
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/CMakeModules/")
-SET(USE_ROS TRUE) # Set False if you want to build this package without Catkin
 
 # Set build flags. Set IS_ARM on odroid board as environment variable
 SET(CMAKE_CXX_FLAGS "-Wall -D_LINUX -D_REENTRANT -march=native -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unknown-pragmas")
 IF(DEFINED ENV{ARM_ARCHITECTURE})
-  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mfpu=neon -march=armv7-a")
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mfpu=neon -march=armv7")
 ELSE()
   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mmmx -msse -msse -msse2 -msse3 -mssse3")
 ENDIF()
@@ -20,26 +24,33 @@ ELSE()
 ENDIF()
 SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} -O3 -fsee -fomit-frame-pointer -fno-signed-zeros -fno-math-errno -funroll-loops")
 
-# Add plain cmake packages 
+# Add plain cmake packages
 FIND_PACKAGE(OpenCV REQUIRED)
-FIND_PACKAGE(Eigen REQUIRED)
-FIND_PACKAGE(Sophus REQUIRED)
 
 # Include dirs
 INCLUDE_DIRECTORIES(
   include
-  ${Eigen_INCLUDE_DIRS}
   ${OpenCV_INCLUDE_DIRS}
-  ${Sophus_INCLUDE_DIRS}
 )
 
-IF(USE_ROS)
-  FIND_PACKAGE(catkin REQUIRED COMPONENTS roscpp cmake_modules)
-  LIST(APPEND INCLUDE_DIRECTORIES ${catkin_INCLUDE_DIRS})
+# Set link libraries
+LIST(APPEND VIKIT_LINK_LIBS 
+  ${OpenCV_LIBS}
+)
+
+# TODO, make option:
+ADD_DEFINITIONS(-DVIKIT_USE_YAML)
+
+IF(VIKIT_USE_ROS)
+  FIND_PACKAGE(catkin REQUIRED COMPONENTS
+    roscpp eigen_catkin sophus_catkin yaml_cpp_catkin
+  )
+  INCLUDE_DIRECTORIES(${catkin_INCLUDE_DIRS})
+  LIST(APPEND VIKIT_LINK_LIBS ${catkin_LIBRARIES})
   catkin_package(
-    DEPENDS Eigen OpenCV Sophus
-    CATKIN_DEPENDS roscpp
-    INCLUDE_DIRS include
+    DEPENDS OpenCV YamlCpp
+    CATKIN_DEPENDS roscpp eigen_catkin sophus_catkin yaml_cpp_catkin
+    INCLUDE_DIRS include 
     LIBRARIES ${PROJECT_NAME}
   )
 ELSE()
@@ -49,6 +60,7 @@ ENDIF()
 
 # Set source files
 LIST(APPEND VIKIT_SOURCEFILES
+  src/abstract_camera.cpp
   src/atan_camera.cpp
   src/omni_camera.cpp
   src/math_utils.cpp
@@ -57,7 +69,8 @@ LIST(APPEND VIKIT_SOURCEFILES
   src/robust_cost.cpp
   src/user_input_thread.cpp
   src/pinhole_camera.cpp
-  src/homography.cpp)
+  src/pinhole_equidistant_camera.cpp
+)
 
 # Set header files
 LIST(APPEND VIKIT_HEADERFILES
@@ -65,9 +78,7 @@ LIST(APPEND VIKIT_HEADERFILES
   include/vikit/aligned_mem.h
   include/vikit/atan_camera.h
   include/vikit/blender_utils.h
-  include/vikit/file_reader.h
   include/vikit/file_reader_types.h
-  include/vikit/homography.h
   include/vikit/math_utils.h
   include/vikit/nlls_solver.h
   include/vikit/nlls_solver_impl.hpp
@@ -75,24 +86,30 @@ LIST(APPEND VIKIT_HEADERFILES
   include/vikit/patch_score.h
   include/vikit/performance_monitor.h
   include/vikit/pinhole_camera.h
+  include/vikit/pinhole_equidistant_camera.h
   include/vikit/ringbuffer.h
   include/vikit/robust_cost.h
   include/vikit/sample.h
   include/vikit/timer.h
   include/vikit/user_input_thread.h
   include/vikit/vision.h
+  include/vikit/homography_decomp.h
 )
 
-# Create vikit library
-ADD_LIBRARY(${PROJECT_NAME} SHARED ${VIKIT_SOURCEFILES} ${VIKIT_HEADERFILES})
-TARGET_LINK_LIBRARIES(${PROJECT_NAME}
-  ${OpenCV_LIBS}
-  ${Sophus_LIBRARIES}
-  ${catkin_LIBRARIES})
-
-IF(USE_ROS)
-  TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${catkin_LIBRARIES})
+IF(VIKIT_BUILD_GPL_LICENSED_CODE)
+	LIST(APPEND VIKIT_SOURCEFILES
+  	src/homography.cpp
+	)
+	# Set header files
+	LIST(APPEND VIKIT_HEADERFILES
+	  include/vikit/file_reader.h
+	  include/vikit/homography.h
+	)
 ENDIF()
+
+# Create vikit shared library
+ADD_LIBRARY(${PROJECT_NAME} SHARED ${VIKIT_SOURCEFILES} ${VIKIT_HEADERFILES})
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${VIKIT_LINK_LIBS})
 
 # Tests
 ADD_EXECUTABLE(vikit_test_timer test/test_timer.cpp)
@@ -107,10 +124,13 @@ TARGET_LINK_LIBRARIES(vikit_test_triangulation ${PROJECT_NAME})
 ADD_EXECUTABLE(vikit_test_patch_score test/test_patch_score.cpp)
 TARGET_LINK_LIBRARIES(vikit_test_patch_score ${PROJECT_NAME})
 
+ADD_EXECUTABLE(vikit_test_homography test/test_homography.cpp)
+TARGET_LINK_LIBRARIES(vikit_test_homography ${PROJECT_NAME})
+
 
 ################################################################################
 # Create the vikit_commonConfig.cmake file for other cmake projects.
-IF(NOT USE_ROS)
+IF(NOT VIKIT_USE_ROS)
   GET_TARGET_PROPERTY( FULL_LIBRARY_NAME ${PROJECT_NAME} LOCATION )
   SET(vikit_common_LIBRARIES ${FULL_LIBRARY_NAME} )
   SET(vikit_common_LIBRARY_DIR ${PROJECT_BINARY_DIR} )

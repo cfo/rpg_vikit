@@ -9,6 +9,7 @@
 #define VIKIT_MATH_UTILS_H_
 
 #include <cstdlib> // size_t, fabs
+#define _USE_MATH_DEFINES // for M_PI
 #include <cmath>   // sin, cos
 #include <Eigen/Core>
 #include <Eigen/StdVector>
@@ -182,6 +183,17 @@ inline Vector2d pyrFromZero_2d(const Vector2d& uv_0, int level)
 {
   return Vector2d(pyrFromZero_d(uv_0[0], level),
                   pyrFromZero_d(uv_0[1], level));
+}
+
+template<class T>
+inline T normPdf(const T x, const T mean, const T sigma)
+{
+  T exponent = x - mean;
+  exponent *= -exponent;
+  exponent /= 2 * sigma * sigma;
+  T result = std::exp(exponent);
+  result /= sigma * std::sqrt(2 * M_PI);
+  return result;
 }
 
 /// Frame jacobian for projection of 3D point in (f)rame coordinate to

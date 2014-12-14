@@ -79,8 +79,8 @@ void vk::NLLSSolver<D, T>::optimizeGaussNewton(ModelType& model)
     update(model, new_model);
     old_model = model;
     model = new_model;
-
     chi2_ = new_chi2;
+    double x_norm = vk::norm_max(x_);
 
     if(verbose_)
     {
@@ -88,15 +88,21 @@ void vk::NLLSSolver<D, T>::optimizeGaussNewton(ModelType& model)
                 << "\t Success"
                 << "\t new_chi2 = " << new_chi2
                 << "\t n_meas = " << n_meas_
-                << "\t x_norm = " << vk::norm_max(x_)
+                << "\t x_norm = " << x_norm
                 << std::endl;
     }
 
     finishIteration();
 
     // stop when converged, i.e. update step too small
-    if(vk::norm_max(x_)<=eps_)
+    if(x_norm < eps_)
+    {
+      if(verbose_)
+      {
+        std::cout << "Converged, x_norm " << x_norm << " < " << eps_ << std::endl;
+      }
       break;
+    }
   }
 }
 
@@ -237,12 +243,6 @@ void vk::NLLSSolver<D, T>::setRobustCostFunction(
 {
   switch(scale_estimator)
   {
-    case TDistScale:
-      if(verbose_)
-        printf("Using TDistribution Scale Estimator\n");
-      scale_estimator_.reset(new robust_cost::TDistributionScaleEstimator());
-      use_weights_=true;
-      break;
     case MADScale:
       if(verbose_)
         printf("Using MAD Scale Estimator\n");
@@ -257,18 +257,13 @@ void vk::NLLSSolver<D, T>::setRobustCostFunction(
       break;
     default:
       if(verbose_)
-        printf("Using Unit Scale Estimator\n");
-      scale_estimator_.reset(new robust_cost::UnitScaleEstimator());
-      use_weights_=false;
+        printf("Scale Estimator not set\n");
+      scale_estimator_ = nullptr;
+      use_weights_ = false;
   }
 
   switch(weight_function)
   {
-    case TDistWeight:
-      if(verbose_)
-        printf("Using TDistribution Weight Function\n");
-      weight_function_.reset(new robust_cost::TDistributionWeightFunction());
-      break;
     case TukeyWeight:
       if(verbose_)
         printf("Using Tukey Weight Function\n");
@@ -281,8 +276,9 @@ void vk::NLLSSolver<D, T>::setRobustCostFunction(
       break;
     default:
       if(verbose_)
-        printf("Using Unit Weight Function\n");
-      weight_function_.reset(new robust_cost::UnitWeightFunction());
+        printf("Weight Function not set\n");
+      weight_function_ = nullptr;
+      use_weights_ = false;
   }
 }
 

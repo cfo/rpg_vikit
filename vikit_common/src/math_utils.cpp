@@ -9,6 +9,8 @@
 
 namespace vk {
 
+using namespace Eigen;
+
 Vector3d triangulateFeatureNonLin(
         const Matrix3d& R,
         const Vector3d& t,
@@ -46,6 +48,7 @@ bool depthFromTriangulationExact(
 
   if(std::fabs(denom) < 0.000001)
     return false;
+
   depth_in_c = (b-a*t_r_c.dot(t_r_c)) / denom;
   depth_in_r = (t_r_c + f_c_in_r*depth_in_c).norm();
   return true;

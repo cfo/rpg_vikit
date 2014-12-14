@@ -15,7 +15,11 @@ class RosNode:
             else:
                 self._param_string += ' _'+namespace+key+':='+str(parameter_dictionary[key])
         
+    def clear_parameters(self, namespace):
+        os.system('rosparam clear '+namespace)
+
     def run(self, parameter_dictionary, namespace=''):
+        self.clear_parameters(namespace)
         self.add_parameters(namespace, parameter_dictionary)
         print('Starting ROS node with parameters: '+self._param_string)
         
