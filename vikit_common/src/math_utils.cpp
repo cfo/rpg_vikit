@@ -188,20 +188,18 @@ Sophus::SO3 slerp(const Sophus::SO3& R0, const Sophus::SO3& R1, double t)
   return R0*Sophus::SO3::exp(Sophus::SO3::log(R0.inverse()*R1)*t);
 }
 
-double sampsonusError(const Vector2d &v2Dash, const Matrix3d& Essential, const Vector2d& v2)
+double sampsonDistance(
+    const Vector3d& f_cur,
+    const Matrix3d& E_cur_ref,
+    const Vector3d& f_ref)
 {
-  Vector3d v3Dash = unproject2d(v2Dash);
-  Vector3d v3 = unproject2d(v2);
 
-  double dError = v3Dash.transpose() * Essential * v3;
-
-  Vector3d fv3 = Essential * v3;
-  Vector3d fTv3Dash = Essential.transpose() * v3Dash;
-
-  Vector2d fv3Slice = fv3.head<2>();
-  Vector2d fTv3DashSlice = fTv3Dash.head<2>();
-
-  return (dError * dError / (fv3Slice.dot(fv3Slice) + fTv3DashSlice.dot(fTv3DashSlice)));
+  const double error = f_cur.transpose() * E_cur_ref * f_ref;
+  const Vector3d f_cur_pred = E_cur_ref * f_ref;
+  const Vector3d f_ref_pred = E_cur_ref.transpose() * f_cur;
+  const Vector2d uv_cur = vk::project2d(f_cur_pred);
+  const Vector2d uv_ref = vk::project2d(f_ref_pred);
+  return (error * error / (uv_cur.dot(uv_cur) + uv_ref.dot(uv_ref)));
 }
 
 } // end namespace vk

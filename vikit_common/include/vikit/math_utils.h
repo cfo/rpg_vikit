@@ -82,10 +82,11 @@ Matrix3d angax2dcm(const Vector3d& n, const double& angle);
 /// Spherical linear interpolation. t should be in [0,1]
 Sophus::SO3 slerp(const Sophus::SO3& R0, const Sophus::SO3& R1, double t);
 
-double sampsonusError(
-    const Vector2d &v2Dash,
-    const Matrix3d& m3Essential,
-    const Vector2d& v2);
+/// Sampsonus score
+double sampsonDistance(
+    const Vector3d& f_cur,
+    const Matrix3d& E_cur_ref,
+    const Vector3d& f_ref);
 
 inline Matrix3d skew(const Vector3d& v)
 {
