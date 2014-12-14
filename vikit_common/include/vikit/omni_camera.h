@@ -5,12 +5,9 @@
  *      Author: laurent kneip
  */
 
-#ifndef OCAMPROJECTOR_H_
-#define OCAMPROJECTOR_H_
+#ifndef VIKIT_OCAMPROJECTOR_H_
+#define VIKIT_OCAMPROJECTOR_H_
 
-#include <stdlib.h>
-#include <string>
-#include <Eigen/Eigen>
 #include <vikit/abstract_camera.h>
 #include <vikit/math_utils.h>
 
@@ -18,9 +15,6 @@
 #define MAX_POL_LENGTH 64
 
 namespace vk {
-
-using namespace std;
-using namespace Eigen;
 
 struct ocam_model
 {
@@ -37,34 +31,35 @@ struct ocam_model
   int height;				// image height
 };
 
-class OmniCamera : public AbstractCamera {
-
-private:
-  struct ocam_model ocamModel;
-
+class OmniCamera : public AbstractCamera
+{
 public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-  double error_multiplier_;
+  OmniCamera(
+      const int width,
+      const int height,
+      const std::string& calibfile,
+      const std::string& cam_name = "cam0",
+      const Sophus::SE3& T_imu_cam =
+        Sophus::SE3(Eigen::Matrix3d::Identity(), Eigen::Vector3d::Zero()));
 
-  OmniCamera(){}
-  OmniCamera(string calibFile);
-  ~OmniCamera();
+  virtual ~OmniCamera();
 
-  virtual Vector3d
-  cam2world(const double& x, const double& y) const;
+  /// Project from pixels to world coordiantes. Returns a bearing vector of unit length.
+  virtual Eigen::Vector3d cam2world(const double& x, const double& y) const;
 
-  virtual Vector3d
-  cam2world(const Vector2d& px) const;
+  /// Project from pixels to world coordiantes. Returns a bearing vector of unit length.
+  virtual Eigen::Vector3d cam2world(const Vector2d& px) const;
 
-  virtual Vector2d
-  world2cam(const Vector3d& xyz_c) const;
+  /// Project from world coordinates to camera coordinates.
+  virtual Eigen::Vector2d world2cam(const Vector3d& xyz_c) const;
 
-  virtual Vector2d
-  world2cam(const Vector2d& uv) const;
+  /// Projects unit plane coordinates to camera coordinates.
+  virtual Eigen::Vector2d world2cam(const Vector2d& uv) const;
 
-  double
-  computeErrorMultiplier();
+  /// Print camera info.
+  virtual void print(const std::string& s = "Camera: ") const;
 
   virtual double errorMultiplier2() const
   {
@@ -76,8 +71,13 @@ public:
     return error_multiplier_;
   }
 
+private:
+  double error_multiplier_;
+  struct ocam_model ocamModel;
+  double computeErrorMultiplier();
+
 };
 
 } // end namespace vk
 
-#endif /* OCAMPROJECTOR_H_ */
+#endif // VIKIT_OCAMPROJECTOR_H_

@@ -9,8 +9,8 @@ def align_sim3(model, data):
     IEEE Trans. Pattern Anal. Mach. Intell., vol. 13, no. 4, 1991.
 
     Input:
-    model -- first trajectory (3xn), numpy matrix type
-    data -- second trajectory (3xn), numpy matrix type
+    model -- first trajectory (nx3), numpy array type
+    data -- second trajectory (nx3), numpy array type
     
     Output:
     s -- scale factor (scalar)
@@ -53,34 +53,33 @@ def align_se3(model,data):
     """Align two trajectories using the method of Horn (closed-form). 
         
     Input:
-    model -- first trajectory (3xn), numpy matrix type
-    data -- second trajectory (3xn), numpy matrix type
+    model -- first trajectory (nx3), numpy array type
+    data -- second trajectory (nx3), numpy array type
     
     Output:
     R -- rotation matrix (3x3)
     t -- translation vector (3x1)
-    t_error -- translational error per point (1xn)
     
     """
     np.set_printoptions(precision=3,suppress=True)
-    model_zerocentered = model - model.mean(1)
-    data_zerocentered = data - data.mean(1)
+    mu_M = model.mean(0)
+    mu_D = data.mean(0)
+    model_zerocentered = model - mu_M
+    data_zerocentered = data - mu_D
     
     W = np.zeros( (3,3) )
-    for column in range(model.shape[1]):
-        W += np.outer(model_zerocentered[:,column],data_zerocentered[:,column])
+    for row in range(model.shape[0]):
+        W += np.outer(model_zerocentered[row,:],data_zerocentered[row,:])
     U,d,Vh = np.linalg.linalg.svd(W.transpose())
     S = np.matrix(np.identity( 3 ))
-    if(np.linalg.det(U) * np.linalg.det(Vh)<0):
+    if np.linalg.det(U) * np.linalg.det(Vh) < 0:
         S[2,2] = -1
     R = U*S*Vh
-    t = data.mean(1) - R * model.mean(1)
+    t = mu_D - np.dot(R, mu_M)
     
-    model_aligned = R * model + t
-    alignment_error = model_aligned - data
-    t_error = np.sqrt(np.sum(np.multiply(alignment_error,alignment_error),0)).A[0]
-        
-    return R, t, t_error
+    #model_aligned = np.transpose(np.dot(R, np.transpose(model)) + np.transpose(t))
+  
+    return R, t
 
 def _matrix_log(A):
     theta = np.arccos((np.trace(A)-1.0)/2.0)
