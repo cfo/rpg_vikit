@@ -46,18 +46,32 @@ AbstractCamera::Ptr AbstractCamera::loadCameraFromYamlFile(
   }
 
   // load imu camera transformation
-  Sophus::SE3 T_cam_imu(Eigen::Matrix3d::Identity(), Eigen::Vector3d::Zero());
-  if(data["T_cam_imu"].IsDefined())
+  Sophus::SE3 T_imu_cam(Eigen::Matrix3d::Identity(), Eigen::Vector3d::Zero());
+  if(data["T_imu_cam"].IsDefined())
   {
-    T_cam_imu = SE3(
+    T_imu_cam = SE3(
+        Quaterniond(
+            data["T_imu_cam"]["qw"].as<double>(),
+            data["T_imu_cam"]["qx"].as<double>(),
+            data["T_imu_cam"]["qy"].as<double>(),
+            data["T_imu_cam"]["qz"].as<double>()),
+        Vector3d(
+            data["T_imu_cam"]["tx"].as<double>(),
+            data["T_imu_cam"]["ty"].as<double>(),
+            data["T_imu_cam"]["tz"].as<double>()));
+  }
+  else if(data["T_cam_imu"].IsDefined())
+  {
+    T_imu_cam = SE3(
         Quaterniond(
             data["T_cam_imu"]["qw"].as<double>(),
             data["T_cam_imu"]["qx"].as<double>(),
             data["T_cam_imu"]["qy"].as<double>(),
             data["T_cam_imu"]["qz"].as<double>()),
-        Vector3d(data["T_cam_imu"]["tx"].as<double>(),
+        Vector3d(
+            data["T_cam_imu"]["tx"].as<double>(),
             data["T_cam_imu"]["ty"].as<double>(),
-            data["T_cam_imu"]["tz"].as<double>()));
+            data["T_cam_imu"]["tz"].as<double>())).inverse();
   }
 
   // load camera
@@ -79,7 +93,7 @@ AbstractCamera::Ptr AbstractCamera::loadCameraFromYamlFile(
                 data["cam_cy"].as<double>(),
                 d0, d1, d2, d3, d4,
                 cam_name,
-                T_cam_imu.inverse()));
+                T_imu_cam));
   }
   if(cam_model == "PinholeEquidistant")
   {
@@ -95,7 +109,7 @@ AbstractCamera::Ptr AbstractCamera::loadCameraFromYamlFile(
                 data["cam_d2"].as<double>(),
                 data["cam_d3"].as<double>(),
                 cam_name,
-                T_cam_imu.inverse()));
+                T_imu_cam));
   }
   else if(cam_model == "ATAN")
   {
@@ -108,7 +122,7 @@ AbstractCamera::Ptr AbstractCamera::loadCameraFromYamlFile(
                 data["cam_cy"].as<double>(),
                 data["cam_d0"].as<double>(),
                 cam_name,
-                T_cam_imu.inverse()));
+                T_imu_cam));
   }
   else if(cam_model == "OCam")
   {
@@ -117,7 +131,7 @@ AbstractCamera::Ptr AbstractCamera::loadCameraFromYamlFile(
                 data["cam_height"].as<int>(),
                 data["cam_calib_file"].as<std::string>(),
                 cam_name,
-                T_cam_imu.inverse()));
+                T_imu_cam));
   }
   else
   {
