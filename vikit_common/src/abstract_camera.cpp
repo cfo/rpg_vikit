@@ -95,7 +95,7 @@ AbstractCamera::Ptr AbstractCamera::loadCameraFromYamlFile(
                 cam_name,
                 T_imu_cam));
   }
-  if(cam_model == "PinholeEquidistant")
+  else if(cam_model == "PinholeEquidistant")
   {
     cam.reset(new vk::PinholeEquidistantCamera(
                 data["cam_width"].as<int>(),
