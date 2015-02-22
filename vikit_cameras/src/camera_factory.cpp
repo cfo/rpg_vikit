@@ -116,7 +116,7 @@ CameraGeometryBase::Ptr loadFromYAML(
                     data["cam_d2"].as<double>(),
                     data["cam_d3"].as<double>()))));
   }
-  else if(cam_model == "PinholeAtan" || cam_model == "ATAN")
+  else if(cam_model == "PinholeAtan")
   {
     cam.reset(new PinholeAtanGeometry(
                 data["cam_width"].as<int>(),
