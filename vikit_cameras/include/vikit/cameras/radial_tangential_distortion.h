@@ -17,9 +17,9 @@ public:
     : k1_(k1), k2_(k2), p1_(p1), p2_(p2)
   {}
 
-	~RadialTangentialDistortion() = default;
+  ~RadialTangentialDistortion() = default;
 
-	inline void distort(double& x, double& y) const
+  inline void distort(double& x, double& y) const
   {
     const double xx = x * x;
     const double yy = y * y;
@@ -29,7 +29,7 @@ public:
     const double cdist = (k1_ + k2_ * r2) * r2;
     x += x * cdist + p1_ * xy2 + p2_ * (r2 + 2.0 * xx);
     y += y * cdist + p2_ * xy2 + p1_ * (r2 + 2.0 * yy);
-	}
+  }
 
   inline void undistort(double& x, double& y) const
   {
@@ -49,12 +49,12 @@ public:
     }
   }
 
-	inline void print() const 
-	{
+  inline void print() const
+  {
     std::cout << "  Distortion: RadTan("
               << k1_ << ", " << k2_ << ", " << p1_ << ", " << p2_ << ")"
               << std::endl;
-	}
+  }
 
   double k1_ = 0; // Radial distortion factor 1
   double k2_ = 0; // Radial distortion factor 2

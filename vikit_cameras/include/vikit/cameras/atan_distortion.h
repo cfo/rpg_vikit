@@ -22,12 +22,12 @@ public:
   ~AtanDistortion() = default;
 
 	inline void distort(double& x, double& y) const
-	{
+  {
     const double r = std::sqrt(x*x + y*y);
     const double factor = (r < 0.001) ? 1.0 : s_inv_* std::atan(r * tans_) / r;
     x *= factor;
     y *= factor;
-	}
+  }
 
   inline void undistort(double& x, double& y) const
   {
@@ -38,10 +38,10 @@ public:
     y *= d_factor;
   }
 
-	inline void print() const 
-	{
+  inline void print() const
+  {
     std::cout << "  Distortion: Atan(" << s_ << ")" << std::endl;
-	}
+  }
 
   const double s_;      // Radial distortion factor
   double s_inv_;

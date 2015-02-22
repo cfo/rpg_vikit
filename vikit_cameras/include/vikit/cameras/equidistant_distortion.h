@@ -20,8 +20,8 @@ public:
 
   ~EquidistantDistortion() = default;
 
-	inline void distort(double& x, double& y) const
-	{
+  inline void distort(double& x, double& y) const
+  {
     const double r = std::sqrt(x*x + y*y);
     const double theta = std::atan(r);
     const double theta2 = theta * theta;
@@ -33,7 +33,7 @@ public:
     const double scaling = (r > 1e-8) ? thetad / r : 1.0;
     x *= scaling;
     y *= scaling;
-	}
+  }
 
   inline void undistort(double& x, double& y) const
   {
@@ -52,12 +52,12 @@ public:
     y *= scaling;
   }
 
-	inline void print() const 
-	{
+  inline void print() const
+  {
     std::cout << "  Distortion: Equidistant("
               << k1_ << ", " << k2_ << ", " << k3_ << ", " << k4_ << ")"
               << std::endl;
-	}
+  }
 
   double k1_ = 0; // Radial distortion factor 1
   double k2_ = 0; // Radial distortion factor 2
