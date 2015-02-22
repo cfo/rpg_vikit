@@ -59,7 +59,7 @@ CameraGeometryBase::Ptr loadFromYAML(
   // load camera
   CameraGeometryBase::Ptr cam;
   std::string cam_model = data["cam_model"].as<std::string>();
-  if(cam_model == "PinholeRadTan")
+  if(cam_model == "PinholeRadialTangential")
   {
     double d0 = data["cam_d0"].IsDefined() ? data["cam_d0"].as<double>() : 0.0;
     double d1 = data["cam_d1"].IsDefined() ? data["cam_d1"].as<double>() : 0.0;
@@ -84,7 +84,7 @@ CameraGeometryBase::Ptr loadFromYAML(
                     RadialTangentialDistortion(d0, d1, d2, d3))));
     }
   }
-  if(cam_model == "Pinhole")
+  if(cam_model == "PinholeNoDistortion")
   {
     cam.reset(new PinholeGeometry(
                 data["cam_width"].as<int>(),
@@ -116,7 +116,7 @@ CameraGeometryBase::Ptr loadFromYAML(
                     data["cam_d2"].as<double>(),
                     data["cam_d3"].as<double>()))));
   }
-  else if(cam_model == "ATAN")
+  else if(cam_model == "PinholeAtan" || cam_model == "ATAN")
   {
     cam.reset(new PinholeAtanGeometry(
                 data["cam_width"].as<int>(),
@@ -131,15 +131,20 @@ CameraGeometryBase::Ptr loadFromYAML(
                   AtanDistortion(
                     data["cam_d0"].as<double>()))));
   }
+  else if(cam_model == "Pinhole")
+  {
+    std::cerr << "ERROR: Camera Factory: Select between 'PinholeNoDistortion' "
+              << "and 'PinholeRadialTangential'." << std::endl;
+  }
   else if(cam_model == "OCam")
   {
-    std::cerr << "OCam model not yet implemented." << std::endl;
-    return nullptr;
+    std::cerr << "ERROR: Camera Factory: OCam model not yet implemented."
+              << std::endl;
   }
   else if(cam_model != "PinholeRadTan")
   {
-    std::cerr << "Camera model '"<< cam_model << "' doesn't exist." << std::endl;
-    return nullptr;
+    std::cerr << "ERROR: Camera Factory: Camera model '"<< cam_model
+              << "' doesn't exist." << std::endl;
   }
 
   return cam;

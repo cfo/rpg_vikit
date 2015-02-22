@@ -43,6 +43,7 @@ void PinholeProjection<Distortion>::print() const
   std::cout << "  Projection = Pinhole" << std::endl;
   std::cout << "  Focal length = (" << fx_ << ", " << fy_ << ")" << std::endl;
   std::cout << "  Principal point = (" << cx_ << ", " << cy_ << ")" << std::endl;
+  distortion_.print();
 }
 
 } // namespace cameras

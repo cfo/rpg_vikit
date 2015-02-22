@@ -1,14 +1,21 @@
 #include <gtest/gtest.h>
+#include <vikit/cameras.h>
+#include <vikit/cameras/camera_factory.h>
 
-#include <vikit/cameras/pinhole_projection.h>
-#include <vikit/cameras/camera_geometry.h>
 
-// distortion models
-#include <vikit/cameras/no_distortion.h>
-#include <vikit/cameras/atan_distortion.h>
-#include <vikit/cameras/equidistant_distortion.h>
-#include <vikit/cameras/radial_tangential_distortion.h>
+namespace test_utils {
 
+std::string getFileDir()
+{
+  std::string filename(__FILE__);
+  for (auto s = filename.rbegin(); s < filename.rend(); ++s)
+    if(*s == '/')
+      return std::string(filename.begin(), (s+1).base());
+  std::cout << "ERROR getFileDir(): could not decompose string" << std::endl;
+  return std::string("/");
+}
+
+} // namespace test_utils
 
 namespace {
 
@@ -47,28 +54,43 @@ TEST(CamerasTest, RadialTangentialDistortion)
   EXPECT_NEAR(y, 0.8, 1e-2);
 }
 
-TEST(CamerasTest, PinholeConstructor)
+TEST(CamerasTest, CameraFactoryNoDistortion)
 {
-  typedef vk::cameras::PinholeProjection<vk::cameras::NoDistortion> PinholeNoDist;
-  typedef vk::cameras::PinholeProjection<vk::cameras::AtanDistortion> PinholeAtan;
-  typedef vk::cameras::PinholeProjection<vk::cameras::EquidistantDistortion> PinholeEqui;
-  typedef vk::cameras::PinholeProjection<vk::cameras::RadialTangentialDistortion> PinholeRadTan;
-
-  PinholeNoDist cam1;
-  PinholeNoDist cam2(
-        12, 12, 6, 6, vk::cameras::NoDistortion());
-  PinholeAtan cam3(
-        12, 12, 6, 6, vk::cameras::AtanDistortion(0.934479));
-  PinholeEqui cam4(
-        12, 12, 6, 6, vk::cameras::EquidistantDistortion(-0.0027, 0.0241, -0.0430, 0.0311));
-  PinholeRadTan cam5(
-        12, 12, 6, 6, vk::cameras::RadialTangentialDistortion(-0.3, 0.1, 9.52e-05, -0.00057));
-
-  vk::cameras::CameraGeometry<PinholeNoDist> geo1(10, 5, "cam1", Sophus::SE3(), cam2);
-  vk::cameras::CameraGeometry<PinholeAtan> geo2(10, 5, "cam1", Sophus::SE3(), cam3);
-  vk::cameras::CameraGeometry<PinholeEqui> geo3(10, 5, "cam1", Sophus::SE3(), cam4);
-  vk::cameras::CameraGeometry<PinholeRadTan> geo4(10, 5, "cam1", Sophus::SE3(), cam5);
+  std::string data_dir = test_utils::getFileDir()+"/data";
+  vk::cameras::CameraGeometryBase::Ptr cam1 =
+      vk::cameras::factory::loadFromYAML(
+        data_dir+"/calib_pinhole_nodistortion.yaml", "cam0");
+  cam1->print("Test Load Camera No Distortion:");
 }
+
+TEST(CamerasTest, CameraFactoryAtan)
+{
+  std::string data_dir = test_utils::getFileDir()+"/data";
+  vk::cameras::CameraGeometryBase::Ptr cam1 =
+      vk::cameras::factory::loadFromYAML(
+        data_dir+"/calib_pinhole_atan.yaml", "cam0");
+  cam1->print("Test Load Camera Atan:");
+}
+
+TEST(CamerasTest, CameraFactoryEquidistant)
+{
+  std::string data_dir = test_utils::getFileDir()+"/data";
+  vk::cameras::CameraGeometryBase::Ptr cam1 =
+      vk::cameras::factory::loadFromYAML(
+        data_dir+"/calib_pinhole_equidistant.yaml", "cam0");
+  cam1->print("Test Load Camera Equidistant:");
+}
+
+TEST(CamerasTest, CameraFactoryRadTan)
+{
+  std::string data_dir = test_utils::getFileDir()+"/data";
+  vk::cameras::CameraGeometryBase::Ptr cam1 =
+      vk::cameras::factory::loadFromYAML(
+        data_dir+"/calib_pinhole_radtan.yaml", "cam0");
+  cam1->print("Test Load Camera Radial Tangential:");
+}
+
+
 
 } // namespace
 

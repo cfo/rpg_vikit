@@ -31,7 +31,6 @@ Eigen::Vector2d CameraGeometry<Projection>::worldToCam(const Eigen::Vector3d& xy
 template<typename Projection>
 void CameraGeometry<Projection>::print(const std::string& s) const
 {
-  std::cout << s << std::endl;
   std::cout << s << std::endl
             << "  name = " << name_ << std::endl
             << "  size = [" << width_ << ", " << height_ << "]" << std::endl;
