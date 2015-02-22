@@ -10,7 +10,7 @@
 
 #include <list>
 #include <string>
-#include <vikit/pinhole_camera.h>
+#include <vikit/cameras.h>
 #include <vikit/math_utils.h>
 #include <opencv2/opencv.hpp>
 #include <fstream>
@@ -21,18 +21,18 @@ namespace blender_utils {
 
 void loadBlenderDepthmap(
     const std::string file_name,
-    const vk::AbstractCamera& cam,
+    const vk::cameras::CameraGeometryBase::Ptr& cam,
     cv::Mat& img,
     bool get_z = false)
 {
   std::ifstream file_stream(file_name.c_str());
   assert(file_stream.is_open());
-  img = cv::Mat(cam.height(), cam.width(), CV_32FC1);
+  img = cv::Mat(cam->height(), cam->width(), CV_32FC1);
   float * img_ptr = img.ptr<float>();
   float depth;
-  for(int y=0; y<cam.height(); ++y)
+  for(int y=0; y<cam->height(); ++y)
   {
-    for(int x=0; x<cam.width(); ++x, ++img_ptr)
+    for(int x=0; x<cam->width(); ++x, ++img_ptr)
     {
       file_stream >> depth;
       // blender:
@@ -42,14 +42,14 @@ void loadBlenderDepthmap(
       }
       else
       {
-        Eigen::Vector2d uv(vk::project2d(cam.cam2world(x,y)));
-        *img_ptr = depth * sqrt(uv[0]*uv[0] + uv[1]*uv[1] + 1.0);
+        Eigen::Vector2d uv(cam->camToWorld(Vector2d(x,y)).head<2>());
+        *img_ptr = depth * std::sqrt(uv[0]*uv[0] + uv[1]*uv[1] + 1.0);
       }
 
       // povray
       // *img_ptr = depth/100.0; // depth is in [cm], we want [m]
 
-      if(file_stream.peek() == '\n' && x != cam.width()-1 && y != cam.height()-1)
+      if(file_stream.peek() == '\n' && x != cam->width()-1 && y != cam->height()-1)
         printf("WARNING: did not read the full depthmap!\n");
     }
   }
@@ -59,18 +59,18 @@ bool getDepthmapNormalAtPoint(
     const Vector2i& px,
     const cv::Mat& depth,
     const int halfpatch_size,
-    const vk::AbstractCamera& cam,
+    const vk::cameras::CameraGeometryBase::Ptr& cam,
     Vector3d& normal)
 {
-  assert(cam.width() == depth.cols && cam.height() == depth.rows);
-  if(!cam.isInFrame(px, halfpatch_size+1))
+  assert(cam->width() == depth.cols && cam->height() == depth.rows);
+  if(!cam->isInFrame(px, halfpatch_size+1))
     return false;
 
   const size_t n_meas = (halfpatch_size*2+1)*(halfpatch_size*2+1);
   std::list<Vector3d> pts;
   for(int y = px[1]-halfpatch_size; y<=px[1]+halfpatch_size; ++y)
     for(int x = px[0]-halfpatch_size; x<=px[0]+halfpatch_size; ++x)
-      pts.push_back(cam.cam2world(x,y)*depth.at<float>(y,x));
+      pts.push_back(cam->camToWorld(Vector2d(x,y)).normalized()*depth.at<float>(y,x));
 
   assert(n_meas == pts.size());
   Matrix<double, Dynamic, 4> A; A.resize(n_meas, Eigen::NoChange);
