@@ -69,7 +69,7 @@ public:
 
   // Equivalent to focal length for projective cameras and factor for
   // omni-directional cameras that transforms small angular error to pixel-error.
-  virtual double errorMultiplier2() const = 0;
+  virtual double errorMultiplier() const = 0;
 
 protected:
   const int width_;

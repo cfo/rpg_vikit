@@ -30,7 +30,7 @@ public:
 
   virtual void print(const std::string& s = "Camera: ") const override;
 
-  virtual double errorMultiplier2() const override;
+  virtual double errorMultiplier() const override;
 
 private:
   projection_t projection_;

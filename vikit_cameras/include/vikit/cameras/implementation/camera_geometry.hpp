@@ -46,7 +46,7 @@ void CameraGeometry<Projection>::print(const std::string& s) const
 }
 
 template<typename Projection>
-double CameraGeometry<Projection>::errorMultiplier2() const
+double CameraGeometry<Projection>::errorMultiplier() const
 {
   return projection_.errorMultiplier();
 }
