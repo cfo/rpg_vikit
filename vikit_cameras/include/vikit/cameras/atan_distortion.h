@@ -21,7 +21,7 @@ public:
 
   ~AtanDistortion() = default;
 
-	inline void distort(double& x, double& y) const
+  inline void distort(double& x, double& y) const
   {
     const double r = std::sqrt(x*x + y*y);
     const double factor = (r < 0.001) ? 1.0 : s_inv_* std::atan(r * tans_) / r;
