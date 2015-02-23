@@ -28,32 +28,32 @@ CameraGeometryBase::Ptr loadFromYAML(
   }
 
   // load imu camera transformation
-  Sophus::SE3 T_imu_cam(Eigen::Matrix3d::Identity(), Eigen::Vector3d::Zero());
-  if(data["T_imu_cam"].IsDefined())
+  Sophus::SE3 T_body_cam(Eigen::Matrix3d::Identity(), Eigen::Vector3d::Zero());
+  if(data["T_body_cam"].IsDefined())
   {
-    T_imu_cam = Sophus::SE3(
+    T_body_cam = Sophus::SE3(
         Eigen::Quaterniond(
-            data["T_imu_cam"]["qw"].as<double>(),
-            data["T_imu_cam"]["qx"].as<double>(),
-            data["T_imu_cam"]["qy"].as<double>(),
-            data["T_imu_cam"]["qz"].as<double>()),
+            data["T_body_cam"]["qw"].as<double>(),
+            data["T_body_cam"]["qx"].as<double>(),
+            data["T_body_cam"]["qy"].as<double>(),
+            data["T_body_cam"]["qz"].as<double>()),
         Eigen::Vector3d(
-            data["T_imu_cam"]["tx"].as<double>(),
-            data["T_imu_cam"]["ty"].as<double>(),
-            data["T_imu_cam"]["tz"].as<double>()));
+            data["T_body_cam"]["tx"].as<double>(),
+            data["T_body_cam"]["ty"].as<double>(),
+            data["T_body_cam"]["tz"].as<double>()));
   }
-  else if(data["T_cam_imu"].IsDefined())
+  else if(data["T_cam_body"].IsDefined())
   {
-    T_imu_cam = Sophus::SE3(
+    T_body_cam = Sophus::SE3(
         Eigen::Quaterniond(
-            data["T_cam_imu"]["qw"].as<double>(),
-            data["T_cam_imu"]["qx"].as<double>(),
-            data["T_cam_imu"]["qy"].as<double>(),
-            data["T_cam_imu"]["qz"].as<double>()),
+            data["T_cam_body"]["qw"].as<double>(),
+            data["T_cam_body"]["qx"].as<double>(),
+            data["T_cam_body"]["qy"].as<double>(),
+            data["T_cam_body"]["qz"].as<double>()),
         Eigen::Vector3d(
-            data["T_cam_imu"]["tx"].as<double>(),
-            data["T_cam_imu"]["ty"].as<double>(),
-            data["T_cam_imu"]["tz"].as<double>())).inverse();
+            data["T_cam_body"]["tx"].as<double>(),
+            data["T_cam_body"]["ty"].as<double>(),
+            data["T_cam_body"]["tz"].as<double>())).inverse();
   }
 
   // load camera
@@ -75,7 +75,7 @@ CameraGeometryBase::Ptr loadFromYAML(
                   data["cam_width"].as<int>(),
                   data["cam_height"].as<int>(),
                   cam_name,
-                  T_imu_cam,
+                  T_body_cam,
                   PinholeProjection<RadialTangentialDistortion>(
                     data["cam_fx"].as<double>(),
                     data["cam_fy"].as<double>(),
@@ -90,7 +90,7 @@ CameraGeometryBase::Ptr loadFromYAML(
                 data["cam_width"].as<int>(),
                 data["cam_height"].as<int>(),
                 cam_name,
-                T_imu_cam,
+                T_body_cam,
                 PinholeProjection<NoDistortion>(
                   data["cam_fx"].as<double>(),
                   data["cam_fy"].as<double>(),
@@ -104,7 +104,7 @@ CameraGeometryBase::Ptr loadFromYAML(
                 data["cam_width"].as<int>(),
                 data["cam_height"].as<int>(),
                 cam_name,
-                T_imu_cam,
+                T_body_cam,
                 PinholeProjection<EquidistantDistortion>(
                   data["cam_fx"].as<double>(),
                   data["cam_fy"].as<double>(),
@@ -122,7 +122,7 @@ CameraGeometryBase::Ptr loadFromYAML(
                 data["cam_width"].as<int>(),
                 data["cam_height"].as<int>(),
                 cam_name,
-                T_imu_cam,
+                T_body_cam,
                 PinholeProjection<AtanDistortion>(
                   data["cam_fx"].as<double>(),
                   data["cam_fy"].as<double>(),

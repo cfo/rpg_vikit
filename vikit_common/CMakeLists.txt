@@ -3,7 +3,6 @@ PROJECT(${PROJECT_NAME})
 CMAKE_MINIMUM_REQUIRED (VERSION 2.8.3)
 
 # Options
-OPTION(VIKIT_BUILD_GPL_LICENSED_CODE "Should GPL licensed code be build in the library" ON)
 OPTION(VIKIT_USE_ROS "Is ROS available?" ON)
 
 SET(CMAKE_BUILD_TYPE Release) # Release, RelWithDebInfo
@@ -70,9 +69,7 @@ LIST(APPEND VIKIT_SOURCEFILES
 
 # Set header files
 LIST(APPEND VIKIT_HEADERFILES
-  include/vikit/aligned_mem.h
   include/vikit/blender_utils.h
-  include/vikit/file_reader_types.h
   include/vikit/math_utils.h
   include/vikit/nlls_solver.h
   include/vikit/nlls_solver_impl.hpp
@@ -87,15 +84,6 @@ LIST(APPEND VIKIT_HEADERFILES
   include/vikit/homography_decomp.h
   include/vikit/homography.h
 )
-
-IF(VIKIT_BUILD_GPL_LICENSED_CODE)
-	LIST(APPEND VIKIT_SOURCEFILES
-	)
-	# Set header files
-	LIST(APPEND VIKIT_HEADERFILES
-	  include/vikit/file_reader.h
-	)
-ENDIF()
 
 # Create vikit shared library
 ADD_LIBRARY(${PROJECT_NAME} SHARED ${VIKIT_SOURCEFILES} ${VIKIT_HEADERFILES})

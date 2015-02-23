@@ -8,7 +8,6 @@
 #include <stdio.h>
 #include <opencv2/opencv.hpp>
 #include <vikit/patch_score.h>
-#include <vikit/aligned_mem.h>
 #include <vikit/timer.h>
 
 namespace {
@@ -38,9 +37,8 @@ void testZMSSD(cv::Mat& img)
   typedef vk::patch_score::ZMSSD<g_halfpatch_size> PatchScore;
 
   // create patch
-  uint8_t* ref_patch = vk::aligned_mem::aligned_alloc<uint8_t>(g_patch_size*g_patch_size, 16);
-  uint8_t* cur_patch = vk::aligned_mem::aligned_alloc<uint8_t>(g_patch_size*g_patch_size, 16);
-
+  uint8_t ref_patch[g_patch_size*g_patch_size] __attribute__ ((aligned (16)));
+  uint8_t cur_patch[g_patch_size*g_patch_size] __attribute__ ((aligned (16)));
 
   vk::Timer t;
   for(int i=0; i<1000000; ++i)

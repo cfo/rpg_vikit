@@ -7,7 +7,7 @@ cam0:
   cam_cx: 0.472366
   cam_cy: 0.553086
   cam_d0: 0.934479
-  T_cam_imu: 
+  T_cam_body: 
     tx: 0.0
     ty: 0.0
     tz: -0.02

@@ -90,8 +90,6 @@ TEST(CamerasTest, CameraFactoryRadTan)
   cam1->print("Test Load Camera Radial Tangential:");
 }
 
-
-
 } // namespace
 
 int main(int argc, char **argv) {
