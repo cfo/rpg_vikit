@@ -61,6 +61,12 @@ void testAccuracy(vk::AbstractCamera::Ptr cam)
 
 int main(int argc, char **argv)
 {
+  Eigen::Quaterniond q(vk::rpy2dcm(Eigen::Vector3d(-3.1415, 0, 0)));
+  std::cout << "qx = " << q.x() << std::endl;
+  std::cout << "qy = " << q.y() << std::endl;
+  std::cout << "qz = " << q.z() << std::endl;
+  std::cout << "qw = " << q.w() << std::endl;
+
   vk::AbstractCamera::Ptr cam_pinhole(
         new vk::PinholeCamera(
           640, 480,
