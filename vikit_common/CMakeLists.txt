@@ -83,6 +83,7 @@ LIST(APPEND VIKIT_HEADERFILES
   include/vikit/vision.h
   include/vikit/homography_decomp.h
   include/vikit/homography.h
+  include/vikit/test_utils.h
 )
 
 # Create vikit shared library

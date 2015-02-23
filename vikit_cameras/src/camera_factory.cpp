@@ -7,6 +7,16 @@ namespace vk {
 namespace cameras {
 namespace factory {
 
+CameraGeometryBase::Ptr makePinholeCamera(
+    int width, int height, double fx, double fy, double cx, double cy)
+{
+  CameraGeometryBase::Ptr cam = std::make_shared<PinholeGeometry>(
+        width, height, "camera", Sophus::SE3(),
+        PinholeProjection<NoDistortion>(
+          fx, fy, cx, cy, NoDistortion()));
+  return cam;
+}
+
 CameraGeometryBase::Ptr loadFromYAML(
     const std::string& filename,
     const std::string& cam_name)
