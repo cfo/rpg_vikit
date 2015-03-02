@@ -71,13 +71,19 @@ public:
   // omni-directional cameras that transforms small angular error to pixel-error.
   virtual double errorMultiplier() const = 0;
 
+  // Set user-specific camera index.
+  inline void setCamIndex(size_t index) { cam_index_ = index; }
+
+  // Get user-specific camera index.
+  inline size_t camIndex() const { return cam_index_; }
+
 protected:
   const int width_;
   const int height_;
   const std::string name_;
   const Sophus::SE3 T_body_cam_; // Relative transformation between camera and body.
   const Sophus::SE3 T_cam_body_; // Relative transformation between body and camera.
-
+  size_t cam_index_ = 0;         // Index of camera in camera array.
 };
 
 } // namespace cameras
