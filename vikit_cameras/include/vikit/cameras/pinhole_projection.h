@@ -29,6 +29,9 @@ public:
   // Returns focal length (transforms unit plane error to pixel error).
   double errorMultiplier() const;
 
+  template<typename T>
+  const T* const distortion() const;
+
   void print() const;
 
   double fx_ = 1; // Focal length x.

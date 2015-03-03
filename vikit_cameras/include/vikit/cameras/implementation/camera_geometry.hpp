@@ -51,5 +51,12 @@ double CameraGeometry<Projection>::errorMultiplier() const
   return projection_.errorMultiplier();
 }
 
+template<typename Projection>
+template<typename T>
+const T* const CameraGeometry<Projection>::projection() const
+{
+  return dynamic_cast<const T* const>(&projection_);
+}
+
 } // namespace cameras
 } // namespace vk

@@ -38,6 +38,13 @@ double PinholeProjection<Distortion>::errorMultiplier() const
 }
 
 template<typename Distortion>
+template<typename T>
+const T* const PinholeProjection<Distortion>::distortion() const
+{
+  return dynamic_cast<const T* const>(&distortion_);
+}
+
+template<typename Distortion>
 void PinholeProjection<Distortion>::print() const
 {
   std::cout << "  Projection = Pinhole" << std::endl;

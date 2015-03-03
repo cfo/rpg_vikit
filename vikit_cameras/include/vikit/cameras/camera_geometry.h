@@ -32,6 +32,9 @@ public:
 
   virtual double errorMultiplier() const override;
 
+  template<typename T>
+  const T* const projection() const;
+
 private:
   projection_t projection_;
 };
