@@ -32,7 +32,7 @@ CameraGeometryBase::Ptr loadFromYAML(
   data = data[cam_name];
   if(!data)
   {
-    std::cerr << "Camera with name ' "<< cam_name << "' does not exist in "
+    std::cerr << "Camera with name '"<< cam_name << "' does not exist in "
               << "file: " << filename << std::endl;
     return nullptr;
   }
@@ -77,7 +77,7 @@ CameraGeometryBase::Ptr loadFromYAML(
     double d3 = data["cam_d3"].IsDefined() ? data["cam_d3"].as<double>() : 0.0;
     if(d0 == 0 && d1 == 0 && d2 == 0 && d3 == 0)
     {
-      cam_model = "Pinhole";
+      cam_model = "PinholeNoDistortion";
     }
     else
     {
@@ -151,7 +151,7 @@ CameraGeometryBase::Ptr loadFromYAML(
     std::cerr << "ERROR: Camera Factory: OCam model not yet implemented."
               << std::endl;
   }
-  else if(cam_model != "PinholeRadTan")
+  else if(cam_model != "PinholeRadialTangential")
   {
     std::cerr << "ERROR: Camera Factory: Camera model '"<< cam_model
               << "' doesn't exist." << std::endl;
