@@ -49,6 +49,20 @@ T getParam(const std::string& name)
   return T();
 }
 
+template<typename T>
+T param(const ros::NodeHandle& nh, const std::string& name, const T& defaultValue)
+{
+  if(nh.hasParam(name))
+  {
+    T v;
+    nh.param<T>(name, v, defaultValue);
+    ROS_INFO_STREAM("Found parameter: " << name << ", value: " << v);
+    return v;
+  }
+  ROS_WARN_STREAM("Cannot find value for parameter: " << name << ", assigning default: " << defaultValue);
+  return defaultValue;
+}
+
 } // namespace vk
 
 #endif // ROS_PARAMS_HELPER_H_

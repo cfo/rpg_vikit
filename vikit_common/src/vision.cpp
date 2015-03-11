@@ -77,8 +77,8 @@ halfSample(const cv::Mat& in, cv::Mat& out)
 
 #ifdef __SSE2__
   // TODO: make work for cropped images
-  if(aligned_mem::is_aligned16(in.data)
-     && aligned_mem::is_aligned16(out.data)
+  if(is_aligned16(in.data)
+     && is_aligned16(out.data)
      && ((in.cols % 16) == 0)
      && static_cast<size_t>(in.cols) == in.step)
   {
