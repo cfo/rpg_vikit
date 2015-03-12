@@ -16,24 +16,17 @@ ENDIF()
 # Add catkin and required ROS packages
 FIND_PACKAGE(catkin REQUIRED COMPONENTS
   roscpp vikit_common visualization_msgs tf eigen_catkin sophus_catkin
-)
-
-# Add plain cmake packages 
-FIND_PACKAGE(OpenCV REQUIRED)
-
-# Include dirs
-INCLUDE_DIRECTORIES(
-  include
-  ${OpenCV_INCLUDE_DIRS}
-  ${catkin_INCLUDE_DIRS}
+  opencv2_catkin
 )
 
 # Describe catkin Project
 catkin_package(
-    DEPENDS OpenCV
-    CATKIN_DEPENDS roscpp visualization_msgs tf vikit_common eigen_catkin sophus_catkin
-    INCLUDE_DIRS include
-    LIBRARIES ${PROJECT_NAME}
+  DEPENDS 
+  CATKIN_DEPENDS
+    roscpp visualization_msgs tf vikit_common eigen_catkin sophus_catkin
+    opencv2_catkin
+  INCLUDE_DIRS include
+  LIBRARIES ${PROJECT_NAME}
 )
 
 # Set Sourcefiles
@@ -41,10 +34,12 @@ LIST(APPEND SOURCEFILES
   src/output_helper.cpp
 )
 
+# Include dirs
+INCLUDE_DIRECTORIES(
+  include
+  ${catkin_INCLUDE_DIRS}
+)
+
 # Create vikit library
 ADD_LIBRARY(${PROJECT_NAME} SHARED ${SOURCEFILES})
-TARGET_LINK_LIBRARIES(
-  ${PROJECT_NAME}
-  ${OpenCV_LIBS}
-  ${Sophus_LIBRARIES}
-  ${catkin_LIBRARIES})
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${catkin_LIBRARIES})
