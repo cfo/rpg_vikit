@@ -24,18 +24,9 @@ ELSE()
 ENDIF()
 SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} -O3 -fsee -fomit-frame-pointer -fno-signed-zeros -fno-math-errno -funroll-loops")
 
-# Add plain cmake packages
-#FIND_PACKAGE(OpenCV REQUIRED)
-
 # Include dirs
 INCLUDE_DIRECTORIES(
   include
-  #${OpenCV_INCLUDE_DIRS}
-)
-
-# Set link libraries
-LIST(APPEND VIKIT_LINK_LIBS 
-  #${OpenCV_LIBS}
 )
 
 # TODO, make option:

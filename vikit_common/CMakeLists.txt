@@ -23,39 +23,22 @@ ELSE()
 ENDIF()
 SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} -O3 -fsee -fomit-frame-pointer -fno-signed-zeros -fno-math-errno -funroll-loops")
 
-# Add plain cmake packages
-FIND_PACKAGE(OpenCV REQUIRED)
-
-# Include dirs
-INCLUDE_DIRECTORIES(
-  include
-  ${OpenCV_INCLUDE_DIRS}
-)
-
-# Set link libraries
-LIST(APPEND VIKIT_LINK_LIBS 
-  ${OpenCV_LIBS}
-)
-
 # TODO, make option:
 ADD_DEFINITIONS(-DVIKIT_USE_YAML)
 
-IF(VIKIT_USE_ROS)
-  FIND_PACKAGE(catkin REQUIRED COMPONENTS
-    roscpp eigen_catkin sophus_catkin yaml_cpp_catkin
-  )
-  INCLUDE_DIRECTORIES(${catkin_INCLUDE_DIRS})
-  LIST(APPEND VIKIT_LINK_LIBS ${catkin_LIBRARIES})
-  catkin_package(
-    DEPENDS OpenCV YamlCpp
-    CATKIN_DEPENDS roscpp eigen_catkin sophus_catkin yaml_cpp_catkin
-    INCLUDE_DIRS include 
-    LIBRARIES ${PROJECT_NAME}
-  )
-ELSE()
-  SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
-  SET(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
-ENDIF()
+FIND_PACKAGE(catkin REQUIRED COMPONENTS
+  roscpp eigen_catkin sophus_catkin yaml_cpp_catkin opencv2_catkin
+)
+
+LIST(APPEND VIKIT_LINK_LIBS ${catkin_LIBRARIES})
+catkin_package(
+  DEPENDS
+  CATKIN_DEPENDS
+    roscpp eigen_catkin sophus_catkin yaml_cpp_catkin opencv2_catkin
+  INCLUDE_DIRS include 
+  LIBRARIES ${PROJECT_NAME}
+)
+
 
 # Set source files
 LIST(APPEND VIKIT_SOURCEFILES
@@ -84,6 +67,12 @@ LIST(APPEND VIKIT_HEADERFILES
   include/vikit/homography_decomp.h
   include/vikit/homography.h
   include/vikit/test_utils.h
+)
+
+# Include dirs
+INCLUDE_DIRECTORIES(
+  include
+  ${catkin_INCLUDE_DIRS}
 )
 
 # Create vikit shared library

@@ -11,10 +11,12 @@
   <build_depend>eigen_catkin</build_depend>
   <build_depend>sophus_catkin</build_depend>
   <build_depend>yaml_cpp_catkin</build_depend>
+  <build_depend>opencv2_catkin</build_depend>
   <run_depend>roscpp</run_depend>
   <run_depend>eigen_catkin</run_depend>
   <run_depend>sophus_catkin</run_depend>
   <run_depend>yaml_cpp_catkin</run_depend>
+  <run_depend>opencv2_catkin</run_depend>
   <test_depend>gtest</test_depend>
 
 </package>
