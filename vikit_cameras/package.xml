@@ -7,11 +7,11 @@
   <license>GPLv3</license>
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>eigen_catkin</build_depend>
-  <build_depend>sophus_catkin</build_depend>
   <build_depend>yaml_cpp_catkin</build_depend>
+  <build_depend>minkindr</build_depend>
   <run_depend>eigen_catkin</run_depend>
-  <run_depend>sophus_catkin</run_depend>
   <run_depend>yaml_cpp_catkin</run_depend>
+  <run_depend>minkindr</run_depend>
   <test_depend>gtest</test_depend>
 
 </package>

@@ -3,9 +3,12 @@
 #include <string>
 #include <memory>
 #include <Eigen/Core>
-#include <sophus/se3.h>
+#include <kindr/minimal/quat-transformation.h>
 
 namespace vk {
+
+using Transformation = kindr::minimal::QuatTransformation;
+
 namespace cameras {
 
 class CameraGeometryBase
@@ -17,7 +20,7 @@ public:
       const int width,
       const int height,
       const std::string& cam_name,
-      const Sophus::SE3& T_body_cam)
+      const Transformation& T_body_cam)
     : width_(width), height_(height), name_(cam_name)
     , T_body_cam_(T_body_cam), T_cam_body_(T_body_cam.inverse())
   {}
@@ -41,10 +44,10 @@ public:
   inline const std::string& name() const { return name_; }
 
   // Get camera pose expressed in body coordinates.
-  inline const Sophus::SE3& T_body_cam() const { return T_body_cam_; }
+  inline const Transformation& T_body_cam() const { return T_body_cam_; }
 
   // Get body pose expressed in camera coordinates.
-  inline const Sophus::SE3& T_cam_body() const { return T_cam_body_; }
+  inline const Transformation& T_cam_body() const { return T_cam_body_; }
 
   // Check if a pixel is within the image boundaries.
   inline bool isInFrame(const Eigen::Vector2i& px, const int boundary=0) const
@@ -81,8 +84,8 @@ protected:
   const int width_;
   const int height_;
   const std::string name_;
-  const Sophus::SE3 T_body_cam_; // Relative transformation between camera and body.
-  const Sophus::SE3 T_cam_body_; // Relative transformation between body and camera.
+  const Transformation T_body_cam_; // Relative transformation between camera and body.
+  const Transformation T_cam_body_; // Relative transformation between body and camera.
   size_t cam_index_ = 0;         // Index of camera in camera array.
 };
 

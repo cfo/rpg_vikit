@@ -3,7 +3,6 @@
 #include <string>
 #include <memory>
 #include <Eigen/Core>
-#include <sophus/se3.h>
 #include <vikit/cameras/camera_geometry_base.h>
 
 namespace vk {
@@ -19,7 +18,7 @@ public:
       const int width,
       const int height,
       const std::string& cam_name,
-      const Sophus::SE3& T_body_cam,
+      const Transformation& T_body_cam,
       const projection_t& projection);
 
   virtual ~CameraGeometry() = default;

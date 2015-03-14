@@ -11,7 +11,7 @@ CameraGeometryBase::Ptr makePinholeCamera(
     int width, int height, double fx, double fy, double cx, double cy)
 {
   CameraGeometryBase::Ptr cam = std::make_shared<PinholeGeometry>(
-        width, height, "camera", Sophus::SE3(),
+        width, height, "camera", Transformation(),
         PinholeProjection<NoDistortion>(
           fx, fy, cx, cy, NoDistortion()));
   return cam;
@@ -38,10 +38,10 @@ CameraGeometryBase::Ptr loadFromYAML(
   }
 
   // load imu camera transformation
-  Sophus::SE3 T_body_cam(Eigen::Matrix3d::Identity(), Eigen::Vector3d::Zero());
+  Transformation T_body_cam; // identity by default
   if(data["T_body_cam"].IsDefined())
   {
-    T_body_cam = Sophus::SE3(
+    T_body_cam = Transformation(
         Eigen::Quaterniond(
             data["T_body_cam"]["qw"].as<double>(),
             data["T_body_cam"]["qx"].as<double>(),
@@ -54,7 +54,7 @@ CameraGeometryBase::Ptr loadFromYAML(
   }
   else if(data["T_cam_body"].IsDefined())
   {
-    T_body_cam = Sophus::SE3(
+    T_body_cam = Transformation(
         Eigen::Quaterniond(
             data["T_cam_body"]["qw"].as<double>(),
             data["T_cam_body"]["qx"].as<double>(),
