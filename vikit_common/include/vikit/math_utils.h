@@ -13,14 +13,14 @@
 #include <cmath>   // sin, cos
 #include <Eigen/Core>
 #include <Eigen/StdVector>
-#include <sophus/se3.h>
-#include <sophus/so3.h>
+#include <kindr/minimal/quat-transformation.h>
 
-namespace vk
-{
+namespace vk {
+
+using Transformation = kindr::minimal::QuatTransformation;
+using Quaternion = kindr::minimal::RotationQuaternion;
 
 using namespace Eigen;
-using Sophus::SE3;
 using std::size_t;
 using std::uint8_t;
 
@@ -80,7 +80,7 @@ Quaterniond angax2quat(const Vector3d& n, const double& angle);
 Matrix3d angax2dcm(const Vector3d& n, const double& angle);
 
 /// Spherical linear interpolation. t should be in [0,1]
-Sophus::SO3 slerp(const Sophus::SO3& R0, const Sophus::SO3& R1, double t);
+Quaternion slerp(const Quaternion& R0, const Quaternion& R1, double t);
 
 /// Sampsonus score
 double sampsonDistance(

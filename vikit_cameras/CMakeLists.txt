@@ -33,13 +33,13 @@ INCLUDE_DIRECTORIES(
 ADD_DEFINITIONS(-DVIKIT_USE_YAML)
 
 FIND_PACKAGE(catkin REQUIRED COMPONENTS
-  eigen_catkin sophus_catkin yaml_cpp_catkin
+  eigen_catkin yaml_cpp_catkin minkindr glog_catkin
 )
 INCLUDE_DIRECTORIES(${catkin_INCLUDE_DIRS})
 LIST(APPEND VIKIT_LINK_LIBS ${catkin_LIBRARIES})
 catkin_package(
   DEPENDS YamlCpp
-  CATKIN_DEPENDS eigen_catkin sophus_catkin yaml_cpp_catkin
+  CATKIN_DEPENDS eigen_catkin yaml_cpp_catkin minkindr glog_catkin
   INCLUDE_DIRS include 
   LIBRARIES ${PROJECT_NAME}
 )

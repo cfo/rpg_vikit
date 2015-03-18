@@ -9,7 +9,7 @@ CameraGeometry<Projection>::CameraGeometry(
     const int width,
     const int height,
     const std::string& cam_name,
-    const Sophus::SE3& T_body_cam,
+    const Transformation& T_body_cam,
     const projection_t& projection)
   : CameraGeometryBase(width, height, cam_name, T_body_cam)
   , projection_(projection)
@@ -35,13 +35,13 @@ void CameraGeometry<Projection>::print(const std::string& s) const
             << "  name = " << name_ << std::endl
             << "  size = [" << width_ << ", " << height_ << "]" << std::endl;
   projection_.print();
-  std::cout << "  T_cam_body = [ tx: " << T_cam_body_.translation().x()
-                           << ", ty: " << T_cam_body_.translation().y()
-                           << ", tz: " << T_cam_body_.translation().z()
-                           << ", qx: " << T_cam_body_.unit_quaternion().x()
-                           << ", qy: " << T_cam_body_.unit_quaternion().y()
-                           << ", qz: " << T_cam_body_.unit_quaternion().z()
-                           << ", qw: " << T_cam_body_.unit_quaternion().w()
+  std::cout << "  T_cam_body = [ tx: " << T_cam_body_.getPosition().x()
+                           << ", ty: " << T_cam_body_.getPosition().y()
+                           << ", tz: " << T_cam_body_.getPosition().z()
+                           << ", qx: " << T_cam_body_.getRotation().x()
+                           << ", qy: " << T_cam_body_.getRotation().y()
+                           << ", qz: " << T_cam_body_.getRotation().z()
+                           << ", qw: " << T_cam_body_.getRotation().w()
                            << "]" << std::endl;
 }
 
