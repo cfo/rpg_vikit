@@ -178,14 +178,14 @@ Matrix3d angax2dcm(const Vector3d& n, const double& angle)
   return Matrix3d(Matrix3d::Identity() + sqewn*sin(angle) + sqewn*sqewn*(1-cos(angle)));
 }
 
-Sophus::SO3 slerp(const Sophus::SO3& R0, const Sophus::SO3& R1, double t)
+Quaternion slerp(const Quaternion& q0, const Quaternion& q1, double t)
 {
   if(t <= 0.0)
-    return R0;
+    return q0;
   else if(t >= 1.0)
-    return R1;
+    return q1;
 
-  return R0*Sophus::SO3::exp(Sophus::SO3::log(R0.inverse()*R1)*t);
+  return q0*Quaternion::exp(Quaternion::log(q0.inverse()*q1)*t);
 }
 
 double sampsonDistance(

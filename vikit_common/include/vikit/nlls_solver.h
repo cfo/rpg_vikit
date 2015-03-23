@@ -123,7 +123,7 @@ public:
     n_trials_max_(5),
     n_meas_(0),
     stop_(false),
-    stop_when_error_increases_(true),
+    stop_when_error_increases_(false),
     verbose_(true),
     eps_(0.0000000001),
     iter_(0),
