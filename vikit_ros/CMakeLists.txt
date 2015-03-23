@@ -16,7 +16,7 @@ ENDIF()
 # Add catkin and required ROS packages
 FIND_PACKAGE(catkin REQUIRED COMPONENTS
   roscpp vikit_common visualization_msgs tf eigen_catkin minkindr
-  opencv2_catkin
+  cv_bridge
 )
 
 # Describe catkin Project
@@ -24,7 +24,7 @@ catkin_package(
   DEPENDS 
   CATKIN_DEPENDS
     roscpp visualization_msgs tf vikit_common eigen_catkin minkindr
-    opencv2_catkin
+    cv_bridge
   INCLUDE_DIRS include
   LIBRARIES ${PROJECT_NAME}
 )
