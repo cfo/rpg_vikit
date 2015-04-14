@@ -102,7 +102,7 @@ def associate(first_list, second_list, offset, max_difference):
     
     matches.sort()
     return matches
-
+    
 if __name__ == '__main__':
     
     # parse command line

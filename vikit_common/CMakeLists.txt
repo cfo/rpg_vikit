@@ -28,6 +28,7 @@ ADD_DEFINITIONS(-DVIKIT_USE_YAML)
 
 FIND_PACKAGE(catkin REQUIRED COMPONENTS
   roscpp eigen_catkin minkindr yaml_cpp_catkin cv_bridge glog_catkin
+  vikit_cameras
 )
 
 LIST(APPEND VIKIT_LINK_LIBS ${catkin_LIBRARIES})
@@ -35,6 +36,7 @@ catkin_package(
   DEPENDS
   CATKIN_DEPENDS
     roscpp eigen_catkin minkindr yaml_cpp_catkin cv_bridge glog_catkin
+    vikit_cameras
   INCLUDE_DIRS include
   LIBRARIES ${PROJECT_NAME}
 )
