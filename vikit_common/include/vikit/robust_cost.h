@@ -6,7 +6,7 @@
 #include <memory>
 
 namespace vk {
-namespace robust_cost {
+namespace solver {
 
 /// Scale Estimators to estimate standard deviation of a distribution of errors.
 class ScaleEstimator

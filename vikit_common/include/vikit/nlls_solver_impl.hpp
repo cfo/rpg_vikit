@@ -7,13 +7,11 @@
  *      Author: cforster
  */
 
-#ifndef LM_SOLVER_IMPL_HPP_
-#define LM_SOLVER_IMPL_HPP_
-
 #include <stdexcept>
 #include <vikit/nlls_solver.h>
 
 namespace vk {
+namespace solver {
 
 template <int D, typename T>
 void MiniLeastSquaresSolver<D, T>::optimize(State& state)
@@ -281,6 +279,5 @@ bool MiniLeastSquaresSolver<D, T>::solve(
   return true;
 }
 
+} // namespace solver
 } // namespace vk
-
-#endif /* LM_SOLVER_IMPL_HPP_ */

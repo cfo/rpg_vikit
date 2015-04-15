@@ -20,6 +20,7 @@
 #include <vikit/robust_cost.h>
 
 namespace vk {
+namespace solver {
 
 using namespace Eigen;
 
@@ -166,7 +167,8 @@ protected:
 
 };
 
-} // end namespace vk
+} // namespace solver
+} // namespace vk
 
 #include "nlls_solver_impl.hpp"
 

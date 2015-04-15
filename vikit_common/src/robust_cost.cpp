@@ -4,7 +4,7 @@
 #include <vikit/math_utils.h>
 
 namespace vk {
-namespace robust_cost {
+namespace solver {
 
 /* ************************************************************************* */
 // Scale Estimators
