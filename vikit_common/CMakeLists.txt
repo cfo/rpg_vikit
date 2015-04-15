@@ -47,7 +47,6 @@ LIST(APPEND VIKIT_SOURCEFILES
   src/math_utils.cpp
   src/vision.cpp
   src/performance_monitor.cpp
-  src/robust_cost.cpp
   src/user_input_thread.cpp
   src/homography.cpp
 )
@@ -56,12 +55,9 @@ LIST(APPEND VIKIT_SOURCEFILES
 LIST(APPEND VIKIT_HEADERFILES
   include/vikit/blender_utils.h
   include/vikit/math_utils.h
-  include/vikit/nlls_solver.h
-  include/vikit/nlls_solver_impl.hpp
   include/vikit/patch_score.h
   include/vikit/performance_monitor.h
   include/vikit/ringbuffer.h
-  include/vikit/robust_cost.h
   include/vikit/sample.h
   include/vikit/timer.h
   include/vikit/user_input_thread.h
