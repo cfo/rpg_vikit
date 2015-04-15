@@ -30,7 +30,7 @@ TukeyWeightFunction::TukeyWeightFunction(const float b)
   configure(b);
 }
 
-float TukeyWeightFunction::value(const float& x) const
+float TukeyWeightFunction::weight(const float& x) const
 {
   const float x_square = x * x;
   if(x_square <= b_square)
@@ -61,9 +61,9 @@ void HuberWeightFunction::configure(const float& param)
   k = param;
 }
 
-float HuberWeightFunction::value(const float& t) const
+float HuberWeightFunction::weight(const float& error) const
 {
-  const float t_abs = std::abs(t);
+  const float t_abs = std::abs(error);
   if(t_abs < k)
     return 1.0f;
   else

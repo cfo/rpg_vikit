@@ -11,25 +11,31 @@
 #define LM_SOLVER_IMPL_HPP_
 
 #include <stdexcept>
+#include <vikit/nlls_solver.h>
+
+namespace vk {
 
 template <int D, typename T>
-void vk::NLLSSolver<D, T>::optimize(ModelType& model)
+void MiniLeastSquaresSolver<D, T>::optimize(State& state)
 {
   if(method_ == GaussNewton)
-    optimizeGaussNewton(model);
+    optimizeGaussNewton(state);
   else if(method_ == LevenbergMarquardt)
-    optimizeLevenbergMarquardt(model);
+    optimizeLevenbergMarquardt(state);
 }
 
 template <int D, typename T>
-void vk::NLLSSolver<D, T>::optimizeGaussNewton(ModelType& model)
+void MiniLeastSquaresSolver<D, T>::optimizeGaussNewton(State& state)
 {
   // Compute weight scale
   if(use_weights_)
-    computeResiduals(model, false, true);
+  {
+    std::vector<float> unwhitened_errors;
+    evaluateError(state, nullptr, nullptr, &unwhitened_errors);
+  }
 
   // Save the old model to rollback in case of unsuccessful update
-  ModelType old_model(model);
+  State old_model(state);
 
   // perform iterative estimation
   for (iter_ = 0; iter_<n_iter_; ++iter_)
@@ -42,11 +48,11 @@ void vk::NLLSSolver<D, T>::optimizeGaussNewton(ModelType& model)
 
     // compute initial error
     n_meas_ = 0;
-    double new_chi2 = computeResiduals(model, true, false);
+    double new_chi2 = evaluateError(state, &H_, &Jres_, nullptr);
 
     // add prior
     if(have_prior_)
-      applyPrior(model);
+      applyPrior(state);
 
     // solve the linear system
     if(!solve())
@@ -70,15 +76,15 @@ void vk::NLLSSolver<D, T>::optimizeGaussNewton(ModelType& model)
                   << "\t Error increased. Stop optimizing."
                   << std::endl;
       }
-      model = old_model; // rollback
+      state = old_model; // rollback
       break;
     }
 
     // update the model
-    ModelType new_model;
-    update(model, new_model);
-    old_model = model;
-    model = new_model;
+    State new_state;
+    update(state, new_state);
+    old_model = state;
+    state = new_state;
     chi2_ = new_chi2;
     double x_norm = vk::norm_max(x_);
 
@@ -107,19 +113,22 @@ void vk::NLLSSolver<D, T>::optimizeGaussNewton(ModelType& model)
 }
 
 template <int D, typename T>
-void vk::NLLSSolver<D, T>::optimizeLevenbergMarquardt(ModelType& model)
+void MiniLeastSquaresSolver<D, T>::optimizeLevenbergMarquardt(State& state)
 {
   // Compute weight scale
   if(use_weights_)
-    computeResiduals(model, false, true);
+  {
+    std::vector<float> unwhitened_errors;
+    evaluateError(state, nullptr, nullptr, &unwhitened_errors);
+  }
 
   // compute the initial error
-  chi2_ = computeResiduals(model, true, false);
+  chi2_ = evaluateError(state, nullptr, nullptr, nullptr);
 
   if(verbose_)
-    cout << "init chi2 = " << chi2_
+    std::cout << "init chi2 = " << chi2_
          << "\t n_meas = " << n_meas_
-         << endl;
+         << std::endl;
 
   // TODO: compute initial lambda
   // Hartley and Zisserman: "A typical init value of lambda is 10^-3 times the
@@ -131,7 +140,7 @@ void vk::NLLSSolver<D, T>::optimizeLevenbergMarquardt(ModelType& model)
     double H_max_diag = 0;
     double tau = 1e-4;
     for(size_t j=0; j<D; ++j)
-      H_max_diag = max(H_max_diag, fabs(H_(j,j)));
+      H_max_diag = std::max(H_max_diag, std::abs(H_(j,j)));
     mu_ = tau*H_max_diag;
   }
 
@@ -146,61 +155,61 @@ void vk::NLLSSolver<D, T>::optimizeLevenbergMarquardt(ModelType& model)
     do
     {
       // init variables
-      ModelType new_model;
+      State new_model;
       double new_chi2 = -1;
       H_.setZero();
       //H_ = mu_ * Matrix<double,D,D>::Identity(D,D);
       Jres_.setZero();
 
-      // compute initial error
+      // linearize
       n_meas_ = 0;
-      computeResiduals(model, true, false);
+      evaluateError(state, &H_, &Jres_, nullptr);
 
       // add damping term:
       H_ += (H_.diagonal()*mu_).asDiagonal();
 
       // add prior
       if(have_prior_)
-        applyPrior(model);
+        applyPrior(state);
 
-      // solve the linear system
+      // solve the linear system to obtain small perturbation in direction of gradient
       if(solve())
       {
-        // update the model
-        update(model, new_model);
+        // apply perturbation to the state
+        update(state, new_model);
 
         // compute error with new model and compare to old error
         n_meas_ = 0;
-        new_chi2 = computeResiduals(new_model, false, false);
+        new_chi2 = evaluateError(new_model, nullptr, nullptr, nullptr);
         rho_ = chi2_-new_chi2;
       }
       else
       {
         // matrix was singular and could not be computed
-        cout << "Matrix is close to singular!" << endl;
-        cout << "H = " << H_ << endl;
-        cout << "Jres = " << Jres_ << endl;
+        std::cout << "Matrix is close to singular!" << std::endl;
+        std::cout << "H = " << H_ << std::endl;
+        std::cout << "Jres = " << Jres_ << std::endl;
         rho_ = -1;
       }
 
       if(rho_>0)
       {
         // update decrased the error -> success
-        model = new_model;
+        state = new_model;
         chi2_ = new_chi2;
         stop_ = vk::norm_max(x_)<=eps_;
-        mu_ *= max(1./3., min(1.-pow(2*rho_-1,3), 2./3.));
+        mu_ *= std::max(1./3., std::min(1.-std::pow(2*rho_-1,3), 2./3.));
         nu_ = 2.;
         if(verbose_)
         {
-          cout << "It. " << iter_
-               << "\t Trial " << n_trials_
-               << "\t Success"
-               << "\t n_meas = " << n_meas_
-               << "\t new_chi2 = " << new_chi2
-               << "\t mu = " << mu_
-               << "\t nu = " << nu_
-               << endl;
+          std::cout << "It. " << iter_
+                    << "\t Trial " << n_trials_
+                    << "\t Success"
+                    << "\t n_meas = " << n_meas_
+                    << "\t new_chi2 = " << new_chi2
+                    << "\t mu = " << mu_
+                    << "\t nu = " << nu_
+                    << std::endl;
         }
       }
       else
@@ -214,14 +223,14 @@ void vk::NLLSSolver<D, T>::optimizeLevenbergMarquardt(ModelType& model)
 
         if(verbose_)
         {
-          cout << "It. " << iter_
-               << "\t Trial " << n_trials_
-               << "\t Failure"
-               << "\t n_meas = " << n_meas_
-               << "\t new_chi2 = " << new_chi2
-               << "\t mu = " << mu_
-               << "\t nu = " << nu_
-               << endl;
+          std::cout << "It. " << iter_
+                    << "\t Trial " << n_trials_
+                    << "\t Failure"
+                    << "\t n_meas = " << n_meas_
+                    << "\t new_chi2 = " << new_chi2
+                    << "\t mu = " << mu_
+                    << "\t nu = " << nu_
+                    << std::endl;
         }
       }
 
@@ -237,7 +246,7 @@ void vk::NLLSSolver<D, T>::optimizeLevenbergMarquardt(ModelType& model)
 
 
 template <int D, typename T>
-void vk::NLLSSolver<D, T>::setRobustCostFunction(
+void MiniLeastSquaresSolver<D, T>::setRobustCostFunction(
     ScaleEstimatorType scale_estimator,
     WeightFunctionType weight_function)
 {
@@ -283,7 +292,7 @@ void vk::NLLSSolver<D, T>::setRobustCostFunction(
 }
 
 template <int D, typename T>
-void vk::NLLSSolver<D, T>::setPrior(
+void MiniLeastSquaresSolver<D, T>::setPrior(
     const T&  prior,
     const Matrix<double, D, D>&  Information)
 {
@@ -293,7 +302,7 @@ void vk::NLLSSolver<D, T>::setPrior(
 }
 
 template <int D, typename T>
-void vk::NLLSSolver<D, T>::reset()
+void MiniLeastSquaresSolver<D, T>::reset()
 {
   have_prior_ = false;
   chi2_ = 1e10;
@@ -306,15 +315,17 @@ void vk::NLLSSolver<D, T>::reset()
 }
 
 template <int D, typename T>
-inline const double& vk::NLLSSolver<D, T>::getChi2() const
+inline const double& MiniLeastSquaresSolver<D, T>::getChi2() const
 {
   return chi2_;
 }
 
 template <int D, typename T>
-inline const vk::Matrix<double, D, D>& vk::NLLSSolver<D, T>::getInformationMatrix() const
+inline const vk::Matrix<double, D, D>& MiniLeastSquaresSolver<D, T>::getInformationMatrix() const
 {
   return H_;
 }
+
+} // namespace vk
 
 #endif /* LM_SOLVER_IMPL_HPP_ */

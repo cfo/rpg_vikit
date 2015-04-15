@@ -51,7 +51,7 @@ class WeightFunction
 {
 public:
   virtual ~WeightFunction() {};
-  virtual float value(const float& x) const = 0;
+  virtual float weight(const float& x) const = 0;
   virtual void configure(const float& /*param*/) {};
 };
 typedef std::shared_ptr<WeightFunction> WeightFunctionPtr;
@@ -61,7 +61,7 @@ class UnitWeightFunction : public WeightFunction
 public:
   UnitWeightFunction() {};
   virtual ~UnitWeightFunction() {};
-  virtual float value(const float& /*x*/) const { return 1.0f; };
+  virtual float weight(const float& /*x*/) const { return 1.0f; };
 };
 
 class TukeyWeightFunction : public WeightFunction
@@ -69,7 +69,7 @@ class TukeyWeightFunction : public WeightFunction
 public:
   TukeyWeightFunction(const float b = DEFAULT_B);
   virtual ~TukeyWeightFunction() {};
-  virtual float value(const float& x) const;
+  virtual float weight(const float& x) const;
   virtual void configure(const float& param);
 
   static const float DEFAULT_B;
@@ -82,7 +82,7 @@ class HuberWeightFunction : public WeightFunction
 public:
   HuberWeightFunction(const float k = DEFAULT_K);
   virtual ~HuberWeightFunction() {};
-  virtual float value(const float& x) const;
+  virtual float weight(const float& x) const;
   virtual void configure(const float& param);
 
   static const float DEFAULT_K;

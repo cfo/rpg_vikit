@@ -21,7 +21,6 @@
 
 namespace vk {
 
-using namespace std;
 using namespace Eigen;
 
 /**
@@ -38,20 +37,22 @@ using namespace Eigen;
  */
 
 template <int D, typename T>
-class NLLSSolver {
+class MiniLeastSquaresSolver {
 
 public:
-  typedef T ModelType;
+  typedef T State;
+  typedef Matrix<double, D, D> HessianMatrix;
+  typedef Matrix<double, D, 1> GradientVector;
   enum Method{GaussNewton, LevenbergMarquardt};
   enum ScaleEstimatorType{UnitScale, MADScale, NormalScale};
   enum WeightFunctionType{UnitWeight, TukeyWeight, HuberWeight};
 
 protected:
-  Matrix<double, D, D>  H_;       //!< Hessian approximation
-  Matrix<double, D, 1>  Jres_;    //!< Jacobian x Residual
+  HessianMatrix  H_;     ///< Hessian or approximation Jacobian*Jacobian^T.
+  GradientVector Jres_;  ///< Jacobian*residual.
   Matrix<double, D, 1>  x_;       //!< update step
   bool                  have_prior_;
-  ModelType prior_;
+  State prior_;
   Matrix<double, D, D>  I_prior_; //!< Prior information matrix (inverse covariance)
   double                chi2_;
   double                rho_;
@@ -59,10 +60,11 @@ protected:
 
   /// If the flag linearize_system is set, the function must also compute the
   /// Jacobian and set the member variables H_, Jres_
-  virtual double
-  computeResiduals      (const ModelType& model,
-                         bool linearize_system,
-                         bool compute_weight_scale) = 0;
+  virtual double evaluateError(
+      const State& state,
+      HessianMatrix* H,
+      GradientVector* g,
+      std::vector<float>* unwhitened_errors) = 0;
 
   /// Solve the linear system H*x = Jres. This function must set the update
   /// step in the member variable x_. Must return true if the system could be
@@ -71,10 +73,10 @@ protected:
   solve                 () = 0;
 
   virtual void
-  update                (const ModelType& old_model, ModelType& new_model) = 0;
+  update                (const State& old_model, State& new_model) = 0;
 
   virtual void
-  applyPrior            (const ModelType& /*current_model*/) { }
+  applyPrior            (const State& /*current_model*/) { }
 
   virtual void
   startIteration        () { }
@@ -110,7 +112,7 @@ public:
   robust_cost::ScaleEstimatorPtr scale_estimator_;
   robust_cost::WeightFunctionPtr weight_function_;
 
-  NLLSSolver() :
+  MiniLeastSquaresSolver() :
     have_prior_(false),
     method_(LevenbergMarquardt),
     mu_init_(0.01f),
@@ -133,16 +135,16 @@ public:
     weight_function_(nullptr)
   { }
 
-  virtual ~NLLSSolver() {}
+  virtual ~MiniLeastSquaresSolver() {}
 
   /// Calls the GaussNewton or LevenbergMarquardt optimization strategy
-  void optimize(ModelType& model);
+  void optimize(State& state);
 
   /// Gauss Newton optimization strategy
-  void optimizeGaussNewton(ModelType& model);
+  void optimizeGaussNewton(State& state);
 
   /// Levenberg Marquardt optimization strategy
-  void optimizeLevenbergMarquardt(ModelType& model);
+  void optimizeLevenbergMarquardt(State& state);
 
   /// Specify the robust cost that should be used and the appropriate scale estimator
   void setRobustCostFunction(
@@ -151,7 +153,7 @@ public:
 
   /// Add prior to optimization.
   void setPrior(
-      const ModelType&  prior,
+      const State&  prior,
       const Matrix<double, D, D>&  Information);
 
   /// Reset all parameters to restart the optimization
