@@ -48,7 +48,7 @@ void MiniLeastSquaresSolver<D, T>::optimizeGaussNewton(State& state)
       applyPrior(state);
 
     // solve the linear system
-    if(!solve(H_, Jres_, x_))
+    if(!solve(H_, Jres_, dx_))
     {
       // matrix was singular and could not be computed
       std::cout << "Matrix is close to singular! Stop Optimizing." << std::endl;
@@ -75,11 +75,11 @@ void MiniLeastSquaresSolver<D, T>::optimizeGaussNewton(State& state)
 
     // update the model
     State new_state;
-    update(state, new_state);
+    update(state, dx_, new_state);
     old_model = state;
     state = new_state;
     chi2_ = new_chi2;
-    double x_norm = vk::norm_max(x_);
+    double x_norm = vk::norm_max(dx_);
 
     if(verbose_)
     {
@@ -159,10 +159,10 @@ void MiniLeastSquaresSolver<D, T>::optimizeLevenbergMarquardt(State& state)
         applyPrior(state);
 
       // solve the linear system to obtain small perturbation in direction of gradient
-      if(solve(H_, Jres_, x_))
+      if(solve(H_, Jres_, dx_))
       {
         // apply perturbation to the state
-        update(state, new_model);
+        update(state, dx_, new_model);
 
         // compute error with new model and compare to old error
         n_meas_ = 0;
@@ -183,7 +183,7 @@ void MiniLeastSquaresSolver<D, T>::optimizeLevenbergMarquardt(State& state)
         // update decrased the error -> success
         state = new_model;
         chi2_ = new_chi2;
-        stop_ = vk::norm_max(x_)<=eps_;
+        stop_ = vk::norm_max(dx_)<=eps_;
         mu_ *= std::max(1./3., std::min(1.-std::pow(2*rho_-1,3), 2./3.));
         nu_ = 2.;
         if(verbose_)

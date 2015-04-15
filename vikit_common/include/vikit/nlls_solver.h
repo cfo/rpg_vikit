@@ -49,7 +49,7 @@ public:
 protected:
   HessianMatrix  H_;     ///< Hessian or approximation Jacobian*Jacobian^T.
   GradientVector Jres_;  ///< Jacobian*residual.
-  UpdateVector   x_;     ///< Update step.
+  UpdateVector   dx_;     ///< Update step.
 
   bool                  have_prior_;
   State prior_;
@@ -73,8 +73,11 @@ protected:
       const GradientVector& g,
       UpdateVector& dx);
 
-  virtual void
-  update                (const State& old_model, State& new_model) = 0;
+  /// Apply the perturbation dx to the state.
+  virtual void update(
+      const State& state,
+      const UpdateVector& dx,
+      State& new_state) = 0;
 
   virtual void
   applyPrior            (const State& /*current_model*/) { }
