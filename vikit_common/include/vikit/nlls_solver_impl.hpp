@@ -27,13 +27,6 @@ void MiniLeastSquaresSolver<D, T>::optimize(State& state)
 template <int D, typename T>
 void MiniLeastSquaresSolver<D, T>::optimizeGaussNewton(State& state)
 {
-  // Compute weight scale
-  if(use_weights_)
-  {
-    std::vector<float> unwhitened_errors;
-    evaluateError(state, nullptr, nullptr, &unwhitened_errors);
-  }
-
   // Save the old model to rollback in case of unsuccessful update
   State old_model(state);
 
@@ -48,7 +41,7 @@ void MiniLeastSquaresSolver<D, T>::optimizeGaussNewton(State& state)
 
     // compute initial error
     n_meas_ = 0;
-    double new_chi2 = evaluateError(state, &H_, &Jres_, nullptr);
+    double new_chi2 = evaluateError(state, &H_, &Jres_);
 
     // add prior
     if(have_prior_)
@@ -115,15 +108,8 @@ void MiniLeastSquaresSolver<D, T>::optimizeGaussNewton(State& state)
 template <int D, typename T>
 void MiniLeastSquaresSolver<D, T>::optimizeLevenbergMarquardt(State& state)
 {
-  // Compute weight scale
-  if(use_weights_)
-  {
-    std::vector<float> unwhitened_errors;
-    evaluateError(state, nullptr, nullptr, &unwhitened_errors);
-  }
-
   // compute the initial error
-  chi2_ = evaluateError(state, nullptr, nullptr, nullptr);
+  chi2_ = evaluateError(state, nullptr, nullptr);
 
   if(verbose_)
     std::cout << "init chi2 = " << chi2_
@@ -140,7 +126,7 @@ void MiniLeastSquaresSolver<D, T>::optimizeLevenbergMarquardt(State& state)
     double H_max_diag = 0;
     double tau = 1e-4;
     for(size_t j=0; j<D; ++j)
-      H_max_diag = std::max(H_max_diag, std::abs(H_(j,j)));
+      H_max_diag = std::max(H_max_diag, std::fabs(H_(j,j)));
     mu_ = tau*H_max_diag;
   }
 
@@ -163,7 +149,7 @@ void MiniLeastSquaresSolver<D, T>::optimizeLevenbergMarquardt(State& state)
 
       // linearize
       n_meas_ = 0;
-      evaluateError(state, &H_, &Jres_, nullptr);
+      evaluateError(state, &H_, &Jres_);
 
       // add damping term:
       H_ += (H_.diagonal()*mu_).asDiagonal();
@@ -180,7 +166,7 @@ void MiniLeastSquaresSolver<D, T>::optimizeLevenbergMarquardt(State& state)
 
         // compute error with new model and compare to old error
         n_meas_ = 0;
-        new_chi2 = evaluateError(new_model, nullptr, nullptr, nullptr);
+        new_chi2 = evaluateError(new_model, nullptr, nullptr);
         rho_ = chi2_-new_chi2;
       }
       else
@@ -241,53 +227,6 @@ void MiniLeastSquaresSolver<D, T>::optimizeLevenbergMarquardt(State& state)
       break;
 
     finishIteration();
-  }
-}
-
-
-template <int D, typename T>
-void MiniLeastSquaresSolver<D, T>::setRobustCostFunction(
-    ScaleEstimatorType scale_estimator,
-    WeightFunctionType weight_function)
-{
-  switch(scale_estimator)
-  {
-    case MADScale:
-      if(verbose_)
-        printf("Using MAD Scale Estimator\n");
-      scale_estimator_.reset(new robust_cost::MADScaleEstimator());
-      use_weights_=true;
-    break;
-    case NormalScale:
-      if(verbose_)
-        printf("Using Normal Scale Estimator\n");
-      scale_estimator_.reset(new robust_cost::NormalDistributionScaleEstimator());
-      use_weights_=true;
-      break;
-    default:
-      if(verbose_)
-        printf("Scale Estimator not set\n");
-      scale_estimator_ = nullptr;
-      use_weights_ = false;
-  }
-
-  switch(weight_function)
-  {
-    case TukeyWeight:
-      if(verbose_)
-        printf("Using Tukey Weight Function\n");
-      weight_function_.reset(new robust_cost::TukeyWeightFunction());
-      break;
-    case HuberWeight:
-      if(verbose_)
-        printf("Using Huber Weight Function\n");
-      weight_function_.reset(new robust_cost::HuberWeightFunction());
-      break;
-    default:
-      if(verbose_)
-        printf("Weight Function not set\n");
-      weight_function_ = nullptr;
-      use_weights_ = false;
   }
 }
 

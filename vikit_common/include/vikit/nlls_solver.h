@@ -45,8 +45,6 @@ public:
   typedef Matrix<double, D, 1> GradientVector;
   typedef Matrix<double, D, 1> UpdateVector;
   enum Method{GaussNewton, LevenbergMarquardt};
-  enum ScaleEstimatorType{UnitScale, MADScale, NormalScale};
-  enum WeightFunctionType{UnitWeight, TukeyWeight, HuberWeight};
 
 protected:
   HessianMatrix  H_;     ///< Hessian or approximation Jacobian*Jacobian^T.
@@ -65,8 +63,7 @@ protected:
   virtual double evaluateError(
       const State& state,
       HessianMatrix* H,
-      GradientVector* g,
-      std::vector<float>* unwhitened_errors) = 0;
+      GradientVector* g) = 0;
 
   /// Solve the linear system H*x = Jres. This function must set the update
   /// step in the member variable x_. Must return true if the system could be
@@ -110,12 +107,6 @@ public:
   double                eps_;                   //!< Stop if update norm is smaller than eps
   size_t                iter_;                  //!< Current Iteration
 
-  // robust least squares
-  bool                  use_weights_;
-  float                 scale_;
-  robust_cost::ScaleEstimatorPtr scale_estimator_;
-  robust_cost::WeightFunctionPtr weight_function_;
-
   MiniLeastSquaresSolver() :
     have_prior_(false),
     method_(LevenbergMarquardt),
@@ -132,12 +123,8 @@ public:
     stop_when_error_increases_(false),
     verbose_(true),
     eps_(0.0000000001),
-    iter_(0),
-    use_weights_(false),
-    scale_(0.0),
-    scale_estimator_(nullptr),
-    weight_function_(nullptr)
-  { }
+    iter_(0)
+  {}
 
   virtual ~MiniLeastSquaresSolver() {}
 
@@ -149,11 +136,6 @@ public:
 
   /// Levenberg Marquardt optimization strategy
   void optimizeLevenbergMarquardt(State& state);
-
-  /// Specify the robust cost that should be used and the appropriate scale estimator
-  void setRobustCostFunction(
-      ScaleEstimatorType scale_estimator,
-      WeightFunctionType weight_function);
 
   /// Add prior to optimization.
   void setPrior(
