@@ -23,6 +23,43 @@ namespace vk {
 
 using namespace Eigen;
 
+enum class Strategy {
+  GaussNewton,
+  LevenbergMarquardt
+};
+
+struct MiniLeastSquaresSolverOptions
+{
+  /// Solver strategy.
+  Strategy strategy = Strategy::GaussNewton;
+
+  /// Damping parameter. If mu > 0, coefficient matrix is positive definite, this
+  /// ensures that x is a descent direction. If mu is large, x is a short step in
+  /// the steepest direction. This is good if the current iterate is far from the
+  /// solution. If mu is small, LM approximates gauss newton iteration and we
+  /// have (almost) quadratic convergence in the final stages.
+  double mu_init = 0.01f;
+
+  /// Increase factor of mu after fail
+  double nu_init = 2.0;
+
+  /// Max number of iterations
+  size_t max_iter = 15;
+
+  /// Max number of trials (used in LevenbergMarquardt)
+  size_t max_trials = 5;
+
+  /// Stop when error increases.
+  bool stop_when_error_increases = false;
+
+  /// Output Statistics
+  bool verbose = false;
+
+  /// Stop if update norm is smaller than eps
+  double eps = 0.0000000001;
+};
+
+
 /**
  * \brief Abstract Class for solving nonlinear least-squares (NLLS) problems.
  *
@@ -35,101 +72,24 @@ using namespace Eigen;
  * D  : dimension of the residual
  * T  : type of the model, e.g. SE2, SE3
  */
-
 template <int D, typename T>
-class MiniLeastSquaresSolver {
-
+class MiniLeastSquaresSolver
+{
 public:
   typedef T State;
   typedef Matrix<double, D, D> HessianMatrix;
   typedef Matrix<double, D, 1> GradientVector;
   typedef Matrix<double, D, 1> UpdateVector;
-  enum Method{GaussNewton, LevenbergMarquardt};
-
-protected:
-  HessianMatrix  H_;     ///< Hessian or approximation Jacobian*Jacobian^T.
-  GradientVector Jres_;  ///< Jacobian*residual.
-  UpdateVector   dx_;     ///< Update step.
-
-  bool                  have_prior_;
-  State prior_;
-  Matrix<double, D, D>  I_prior_; //!< Prior information matrix (inverse covariance)
-  double                chi2_;
-  double                rho_;
-  Method                method_;
-
-  /// If the flag linearize_system is set, the function must also compute the
-  /// Jacobian and set the member variables H_, Jres_
-  virtual double evaluateError(
-      const State& state,
-      HessianMatrix* H,
-      GradientVector* g) = 0;
-
-  /// Solve the linear system H*x = Jres. This function must set the update
-  /// step in the member variable x_. Must return true if the system could be
-  /// solved and false if it was singular.
-  virtual bool solve(
-      const HessianMatrix& H,
-      const GradientVector& g,
-      UpdateVector& dx);
-
-  /// Apply the perturbation dx to the state.
-  virtual void update(
-      const State& state,
-      const UpdateVector& dx,
-      State& new_state) = 0;
-
-  virtual void
-  applyPrior            (const State& /*current_model*/) { }
-
-  virtual void
-  startIteration        () { }
-
-  virtual void
-  finishIteration       () { }
-
-  virtual void
-  finishTrial           () { }
 
 public:
 
-  /// Damping parameter. If mu > 0, coefficient matrix is positive definite, this
-  /// ensures that x is a descent direction. If mu is large, x is a short step in
-  /// the steepest direction. This is good if the current iterate is far from the
-  /// solution. If mu is small, LM approximates gauss newton iteration and we
-  /// have (almost) quadratic convergence in the final stages.
-  double                mu_init_, mu_;
-  double                nu_init_, nu_;          //!< Increase factor of mu after fail
-  size_t                n_iter_init_, n_iter_;  //!< Number of Iterations
-  size_t                n_trials_;              //!< Number of trials
-  size_t                n_trials_max_;          //!< Max number of trials
-  size_t                n_meas_;                //!< Number of measurements
-  bool                  stop_;                  //!< Stop flag
-  bool                  stop_when_error_increases_;
-  bool                  verbose_;               //!< Output Statistics
-  double                eps_;                   //!< Stop if update norm is smaller than eps
-  size_t                iter_;                  //!< Current Iteration
+  MiniLeastSquaresSolverOptions solver_options_;
 
-  MiniLeastSquaresSolver() :
-    have_prior_(false),
-    method_(LevenbergMarquardt),
-    mu_init_(0.01f),
-    mu_(mu_init_),
-    nu_init_(2.0),
-    nu_(nu_init_),
-    n_iter_init_(15),
-    n_iter_(n_iter_init_),
-    n_trials_(0),
-    n_trials_max_(5),
-    n_meas_(0),
-    stop_(false),
-    stop_when_error_increases_(false),
-    verbose_(true),
-    eps_(0.0000000001),
-    iter_(0)
+  MiniLeastSquaresSolver(const MiniLeastSquaresSolverOptions& options) :
+    solver_options_(options)
   {}
 
-  virtual ~MiniLeastSquaresSolver() {}
+  virtual ~MiniLeastSquaresSolver() = default;
 
   /// Calls the GaussNewton or LevenbergMarquardt optimization strategy
   void optimize(State& state);
@@ -153,6 +113,57 @@ public:
 
   /// The Information matrix is equal to the inverse covariance matrix.
   const Matrix<double, D, D>& getInformationMatrix() const;
+
+protected:
+
+  /// If the flag linearize_system is set, the function must also compute the
+  /// Jacobian and set the member variables H_, Jres_
+  virtual double evaluateError(
+      const State& state,
+      HessianMatrix* H,
+      GradientVector* g) = 0;
+
+  /// Solve the linear system H*x = Jres. This function must set the update
+  /// step in the member variable x_. Must return true if the system could be
+  /// solved and false if it was singular.
+  virtual bool solve(
+      const HessianMatrix& H,
+      const GradientVector& g,
+      UpdateVector& dx);
+
+  /// Apply the perturbation dx to the state.
+  virtual void update(
+      const State& state,
+      const UpdateVector& dx,
+      State& new_state) = 0;
+
+  virtual void applyPrior(const State& /*current_model*/)
+  {}
+
+  virtual void startIteration()
+  {}
+
+  virtual void finishIteration()
+  {}
+
+  virtual void finishTrial()
+  {}
+
+  HessianMatrix  H_;        ///< Hessian or approximation Jacobian*Jacobian^T.
+  GradientVector g_;        ///< Jacobian*residual.
+  UpdateVector   dx_;       ///< Update step.
+  bool have_prior_ = false;
+  State prior_;
+  Matrix<double, D, D> I_prior_; ///< Prior information matrix (inverse covariance)
+  double chi2_ = 0.0;
+  double rho_ = 0.0;
+  double mu_ = 0.01;        ///< Damping parameter.
+  double nu_ = 2.0;         ///< Factor that specifies how much we increase mu at every trial.
+  size_t n_meas_ = 0;       ///< Number of measurements.
+  bool stop_ = false;       ///< Stop flag.
+  size_t iter_ = 0;         ///< Current Iteration.
+  size_t trials_ = 0;       ///< Current number of trials.
+
 };
 
 } // end namespace vk
