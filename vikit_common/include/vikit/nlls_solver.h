@@ -43,6 +43,7 @@ public:
   typedef T State;
   typedef Matrix<double, D, D> HessianMatrix;
   typedef Matrix<double, D, 1> GradientVector;
+  typedef Matrix<double, D, 1> UpdateVector;
   enum Method{GaussNewton, LevenbergMarquardt};
   enum ScaleEstimatorType{UnitScale, MADScale, NormalScale};
   enum WeightFunctionType{UnitWeight, TukeyWeight, HuberWeight};
@@ -50,7 +51,8 @@ public:
 protected:
   HessianMatrix  H_;     ///< Hessian or approximation Jacobian*Jacobian^T.
   GradientVector Jres_;  ///< Jacobian*residual.
-  Matrix<double, D, 1>  x_;       //!< update step
+  UpdateVector   x_;     ///< Update step.
+
   bool                  have_prior_;
   State prior_;
   Matrix<double, D, D>  I_prior_; //!< Prior information matrix (inverse covariance)
@@ -69,8 +71,10 @@ protected:
   /// Solve the linear system H*x = Jres. This function must set the update
   /// step in the member variable x_. Must return true if the system could be
   /// solved and false if it was singular.
-  virtual int
-  solve                 () = 0;
+  virtual bool solve(
+      const HessianMatrix& H,
+      const GradientVector& g,
+      UpdateVector& dx);
 
   virtual void
   update                (const State& old_model, State& new_model) = 0;

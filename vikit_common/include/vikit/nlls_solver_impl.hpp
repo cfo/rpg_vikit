@@ -55,7 +55,7 @@ void MiniLeastSquaresSolver<D, T>::optimizeGaussNewton(State& state)
       applyPrior(state);
 
     // solve the linear system
-    if(!solve())
+    if(!solve(H_, Jres_, x_))
     {
       // matrix was singular and could not be computed
       std::cout << "Matrix is close to singular! Stop Optimizing." << std::endl;
@@ -173,7 +173,7 @@ void MiniLeastSquaresSolver<D, T>::optimizeLevenbergMarquardt(State& state)
         applyPrior(state);
 
       // solve the linear system to obtain small perturbation in direction of gradient
-      if(solve())
+      if(solve(H_, Jres_, x_))
       {
         // apply perturbation to the state
         update(state, new_model);
@@ -324,6 +324,18 @@ template <int D, typename T>
 inline const vk::Matrix<double, D, D>& MiniLeastSquaresSolver<D, T>::getInformationMatrix() const
 {
   return H_;
+}
+
+template <int D, typename T>
+bool MiniLeastSquaresSolver<D, T>::solve(
+    const HessianMatrix& H,
+    const GradientVector& g,
+    UpdateVector& dx)
+{
+  dx = H.ldlt().solve(g);
+  if((bool) std::isnan((double) dx[0]))
+    return false;
+  return true;
 }
 
 } // namespace vk
