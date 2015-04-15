@@ -10,14 +10,10 @@
 #ifndef LM_SOLVER_H_
 #define LM_SOLVER_H_
 
-#include <stdint.h>
-#include <stdio.h>
 #include <iostream>
-#include <math.h>
+#include <cmath>
 #include <Eigen/Core>
 #include <Eigen/StdVector>
-#include <vikit/math_utils.h>
-#include <vikit/robust_cost.h>
 
 namespace vk {
 namespace solver {
@@ -170,6 +166,6 @@ protected:
 } // namespace solver
 } // namespace vk
 
-#include "nlls_solver_impl.hpp"
+#include "implementation/mini_least_squares_solver.hpp"
 
 #endif /* LM_SOLVER_H_ */

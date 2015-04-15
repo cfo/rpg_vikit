@@ -2,7 +2,6 @@
 #define VIKIT_ROBUST_COST_H_
 
 #include <vector>
-#include <stdlib.h>
 #include <memory>
 
 namespace vk {

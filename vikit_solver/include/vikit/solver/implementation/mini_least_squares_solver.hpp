@@ -8,10 +8,26 @@
  */
 
 #include <stdexcept>
-#include <vikit/nlls_solver.h>
+#include <vikit/solver/mini_least_squares_solver.h>
 
 namespace vk {
 namespace solver {
+namespace utils {
+
+inline double norm_max(const Eigen::VectorXd & v)
+{
+  double max = -1;
+  for (int i=0; i<v.size(); i++)
+  {
+    double abs = std::fabs(v[i]);
+    if(abs>max){
+      max = abs;
+    }
+  }
+  return max;
+}
+
+} // namespace utils
 
 template <int D, typename T>
 void MiniLeastSquaresSolver<D, T>::optimize(State& state)
@@ -21,6 +37,7 @@ void MiniLeastSquaresSolver<D, T>::optimize(State& state)
   else if(solver_options_.strategy == Strategy::LevenbergMarquardt)
     optimizeLevenbergMarquardt(state);
 }
+
 
 template <int D, typename T>
 void MiniLeastSquaresSolver<D, T>::optimizeGaussNewton(State& state)
@@ -77,7 +94,7 @@ void MiniLeastSquaresSolver<D, T>::optimizeGaussNewton(State& state)
     old_state = state;
     state = new_state;
     chi2_ = new_chi2;
-    double x_norm = vk::norm_max(dx_);
+    double x_norm = utils::norm_max(dx_);
 
     if(solver_options_.verbose)
     {
@@ -185,7 +202,7 @@ void MiniLeastSquaresSolver<D, T>::optimizeLevenbergMarquardt(State& state)
         // update decrased the error -> success
         state = new_model;
         chi2_ = new_chi2;
-        stop_ = vk::norm_max(dx_) < solver_options_.eps;
+        stop_ = utils::norm_max(dx_) < solver_options_.eps;
         mu_ *= std::max(1./3., std::min(1.-std::pow(2*rho_-1,3), 2./3.));
         nu_ = 2.;
         if(solver_options_.verbose)
@@ -262,7 +279,7 @@ inline const double& MiniLeastSquaresSolver<D, T>::getChi2() const
 }
 
 template <int D, typename T>
-inline const vk::Matrix<double, D, D>& MiniLeastSquaresSolver<D, T>::getInformationMatrix() const
+inline const Eigen::Matrix<double, D, D>& MiniLeastSquaresSolver<D, T>::getInformationMatrix() const
 {
   return H_;
 }

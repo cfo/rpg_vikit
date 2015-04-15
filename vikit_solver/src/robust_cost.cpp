@@ -1,7 +1,7 @@
 #include <numeric>
 #include <algorithm>
-#include <vikit/robust_cost.h>
-#include <vikit/math_utils.h>
+#include <glog/logging.h>
+#include <vikit/solver/robust_cost.h>
 
 namespace vk {
 namespace solver {
@@ -16,7 +16,10 @@ float UnitScaleEstimator::compute(std::vector<float>& /*errors*/) const
 
 float MADScaleEstimator::compute(std::vector<float>& errors) const
 {
-  return 1.48f * vk::getMedian(errors); // 1.48f / 0.6745
+  CHECK(!errors.empty()) << "Error vector is empty.";
+  auto it = errors.begin()+std::floor(errors.size()/2);
+  std::nth_element(errors.begin(), it, errors.end()); // compute median
+  return 1.48f * (*it); // 1.48f / 0.6745
 }
 
 float NormalDistributionScaleEstimator::compute(std::vector<float>& errors) const
