@@ -6,12 +6,17 @@
 namespace vk {
 namespace robust_cost {
 
-const float MADScaleEstimator::NORMALIZER = 1.48f; // 1 / 0.6745
+/* ************************************************************************* */
+// Scale Estimators
+/* ************************************************************************* */
+float UnitScaleEstimator::compute(std::vector<float>& /*errors*/) const
+{
+  return 1.0f;
+}
 
 float MADScaleEstimator::compute(std::vector<float>& errors) const
 {
-  // error must be in absolute values!
-  return NORMALIZER * vk::getMedian(errors);
+  return 1.48f * vk::getMedian(errors); // 1.48f / 0.6745
 }
 
 float NormalDistributionScaleEstimator::compute(std::vector<float>& errors) const
@@ -23,19 +28,24 @@ float NormalDistributionScaleEstimator::compute(std::vector<float>& errors) cons
   return std::sqrt(var); // return standard deviation
 }
 
-const float TukeyWeightFunction::DEFAULT_B = 4.6851f;
-
-TukeyWeightFunction::TukeyWeightFunction(const float b)
+/* ************************************************************************* */
+// Weight Functions
+/* ************************************************************************* */
+float UnitWeightFunction::weight(const float& error) const
 {
-  configure(b);
+  return 1.0f;
 }
 
-float TukeyWeightFunction::weight(const float& x) const
+TukeyWeightFunction::TukeyWeightFunction(const float b)
+  : b_square_(b*b)
+{}
+
+float TukeyWeightFunction::weight(const float& error) const
 {
-  const float x_square = x * x;
-  if(x_square <= b_square)
+  const float x_square = error * error;
+  if(x_square <= b_square_)
   {
-    const float tmp = 1.0f - x_square / b_square;
+    const float tmp = 1.0f - x_square / b_square_;
     return tmp * tmp;
   }
   else
@@ -44,30 +54,14 @@ float TukeyWeightFunction::weight(const float& x) const
   }
 }
 
-void TukeyWeightFunction::configure(const float& param)
-{
-  b_square = param * param;
-}
-
-const float HuberWeightFunction::DEFAULT_K = 1.345f;
-
 HuberWeightFunction::HuberWeightFunction(const float k)
-{
-  configure(k);
-}
-
-void HuberWeightFunction::configure(const float& param)
-{
-  k = param;
-}
+  : k_(k)
+{}
 
 float HuberWeightFunction::weight(const float& error) const
 {
-  const float t_abs = std::abs(error);
-  if(t_abs < k)
-    return 1.0f;
-  else
-    return k / t_abs;
+  const float abs_error = std::fabs(error);
+  return (abs_error < k_) ? 1.0f : k_/abs_error;
 }
 
 } // namespace robust_cost
