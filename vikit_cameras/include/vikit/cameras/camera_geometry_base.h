@@ -11,6 +11,68 @@ using Transformation = kindr::minimal::QuatTransformation;
 
 namespace cameras {
 
+/// \struct ProjectionResult
+/// \brief This struct is returned by the camera projection methods and holds the result state
+///        of the projection operation.
+struct ProjectionResult {
+  /// Possible projection state.
+  enum class Status {
+    /// Keypoint is visible and projection was successful.
+    KEYPOINT_VISIBLE,
+    /// Keypoint is NOT visible but projection was successful.
+    KEYPOINT_OUTSIDE_IMAGE_BOX,
+    /// The projected point lies behind the camera plane.
+    POINT_BEHIND_CAMERA,
+    /// The projection was unsuccessful.
+    PROJECTION_INVALID,
+    /// Default value after construction.
+    UNINITIALIZED
+  };
+  // Make the enum values accessible from the outside without the additional indirection.
+  static Status KEYPOINT_VISIBLE;
+  static Status KEYPOINT_OUTSIDE_IMAGE_BOX;
+  static Status POINT_BEHIND_CAMERA;
+  static Status PROJECTION_INVALID;
+  static Status UNINITIALIZED;
+
+  constexpr ProjectionResult() : status_(Status::UNINITIALIZED) {};
+  constexpr ProjectionResult(Status status) : status_(status) {};
+
+  /// \brief ProjectionResult can be typecasted to bool and is true if the projected keypoint
+  ///        is visible. Simplifies the check for a successful projection.
+  ///        Example usage:
+  /// @code
+  ///          aslam::ProjectionResult ret = camera_->project3(Eigen::Vector3d(0, 0, -10), &keypoint);
+  ///          if(ret) std::cout << "Projection was successful!\n";
+  /// @endcode
+  explicit operator bool() const { return isKeypointVisible(); };
+
+  /// \brief Compare objects.
+  bool operator==(const ProjectionResult& other) const { return status_ == other.status_; };
+
+  /// \brief Compare projection status.
+  bool operator==(const ProjectionResult::Status& other) const { return status_ == other; };
+
+  /// \brief Convenience function to print the state using streams.
+  friend std::ostream& operator<< (std::ostream& out, const ProjectionResult& state);
+
+  /// \brief Check whether the projection was successful and the point is visible in the image.
+  bool isKeypointVisible() const { return (status_ == Status::KEYPOINT_VISIBLE); };
+
+  /// \brief Returns the exact state of the projection operation.
+  ///        Example usage:
+  /// @code
+  ///          aslam::ProjectionResult ret = camera_->project3(Eigen::Vector3d(0, 0, -1), &keypoint);
+  ///          if(ret.getDetailedStatus() == aslam::ProjectionResult::Status::KEYPOINT_OUTSIDE_IMAGE_BOX)
+  ///            std::cout << "Point behind camera! Lets do something...\n";
+  /// @endcode
+  Status getDetailedStatus() const { return status_; };
+
+ private:
+  /// Stores the projection state.
+  Status status_;
+};
+
 class CameraGeometryBase
 {
 public:
@@ -79,6 +141,32 @@ public:
 
   // Get user-specific camera index.
   inline size_t camIndex() const { return cam_index_; }
+
+  /// Helper for transition to aslam_cv2. Replaces worldToCam().
+  const ProjectionResult project3(
+      const Eigen::Ref<const Eigen::Vector3d>& point_3d,
+      Eigen::Vector2d* out_keypoint) const
+  {
+    *out_keypoint = worldToCam(point_3d);
+    if(!isInFrame(out_keypoint->cast<int>()))
+      return ProjectionResult::Status::KEYPOINT_OUTSIDE_IMAGE_BOX;
+    return ProjectionResult::Status::KEYPOINT_VISIBLE;
+  }
+
+  /// Helper for transition to aslam_cv2. Replaces worldToCam().
+  virtual bool backProject3(
+      const Eigen::Ref<const Eigen::Vector2d>& keypoint,
+      Eigen::Vector3d* out_point_3d) const
+  {
+    *out_point_3d = camToWorld(keypoint);
+    return true;
+  }
+
+  /// Helper for transition to aslam_cv2.
+  uint32_t imageWidth() const { return width_; }
+
+  /// Helper for transition to aslam_cv2.
+  uint32_t imageHeight() const { return height_; }
 
 protected:
   const int width_;

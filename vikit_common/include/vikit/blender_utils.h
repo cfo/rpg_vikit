@@ -27,12 +27,12 @@ void loadBlenderDepthmap(
 {
   std::ifstream file_stream(file_name.c_str());
   assert(file_stream.is_open());
-  img = cv::Mat(cam->height(), cam->width(), CV_32FC1);
+  img = cv::Mat(cam->imageHeight(), cam->imageWidth(), CV_32FC1);
   float * img_ptr = img.ptr<float>();
   float depth;
-  for(int y=0; y<cam->height(); ++y)
+  for(int y=0; y<cam->imageHeight(); ++y)
   {
-    for(int x=0; x<cam->width(); ++x, ++img_ptr)
+    for(int x=0; x<cam->imageWidth(); ++x, ++img_ptr)
     {
       file_stream >> depth;
       // blender:
@@ -49,7 +49,7 @@ void loadBlenderDepthmap(
       // povray
       // *img_ptr = depth/100.0; // depth is in [cm], we want [m]
 
-      if(file_stream.peek() == '\n' && x != cam->width()-1 && y != cam->height()-1)
+      if(file_stream.peek() == '\n' && x != cam->imageWidth()-1 && y != cam->imageHeight()-1)
         printf("WARNING: did not read the full depthmap!\n");
     }
   }
@@ -62,7 +62,7 @@ bool getDepthmapNormalAtPoint(
     const vk::cameras::CameraGeometryBase::Ptr& cam,
     Vector3d& normal)
 {
-  assert(cam->width() == depth.cols && cam->height() == depth.rows);
+  assert(cam->imageWidth() == depth.cols && cam->imageHeight() == depth.rows);
   if(!cam->isInFrame(px, halfpatch_size+1))
     return false;
 
