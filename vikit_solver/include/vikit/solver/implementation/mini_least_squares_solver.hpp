@@ -1,14 +1,7 @@
-/*
- * Abstract Nonlinear Least-Squares Solver Class
- *
- * nlls_solver.h
- *
- *  Created on: Nov 5, 2012
- *      Author: cforster
- */
+#include "vikit/solver/mini_least_squares_solver.h"
 
 #include <stdexcept>
-#include <vikit/solver/mini_least_squares_solver.h>
+#include <glog/logging.h>
 
 namespace vk {
 namespace solver {
@@ -28,6 +21,12 @@ inline double norm_max(const Eigen::VectorXd & v)
 }
 
 } // namespace utils
+
+template <int D, typename T>
+MiniLeastSquaresSolver<D, T>::MiniLeastSquaresSolver(
+    const MiniLeastSquaresSolverOptions& options)
+  : solver_options_(options)
+{}
 
 template <int D, typename T>
 void MiniLeastSquaresSolver<D, T>::optimize(State& state)
@@ -60,30 +59,26 @@ void MiniLeastSquaresSolver<D, T>::optimizeGaussNewton(State& state)
 
     // add prior
     if(have_prior_)
+    {
       applyPrior(state);
+    }
 
     // solve the linear system
     if(!solve(H_, g_, dx_))
     {
-      // matrix was singular and could not be computed
-      std::cout << "Matrix is close to singular! Stop Optimizing." << std::endl;
-      std::cout << "H = " << H_ << std::endl;
-      std::cout << "Jres = " << g_ << std::endl;
+      LOG(WARNING) << "Matrix is close to singular! Stop Optimizing."
+                   << "H = " << H_ << "g = " << g_;
       stop_ = true;
     }
 
     // check if error increased since last optimization
     if((iter_ > 0 && new_chi2 > chi2_ && solver_options_.stop_when_error_increases) || stop_)
     {
-      if(solver_options_.verbose)
-      {
-        std::cout << "It. " << iter_
-                  << "\t Failure"
-                  << "\t new_chi2 = " << new_chi2
-                  << "\t n_meas = " << n_meas_
-                  << "\t Error increased. Stop optimizing."
-                  << std::endl;
-      }
+      VLOG(5) << "It. " << iter_
+              << "\t Failure"
+              << "\t new_chi2 = " << new_chi2
+              << "\t n_meas = " << n_meas_
+              << "\t Error increased. Stop optimizing.";
       state = old_state; // rollback
       break;
     }
@@ -95,26 +90,17 @@ void MiniLeastSquaresSolver<D, T>::optimizeGaussNewton(State& state)
     state = new_state;
     chi2_ = new_chi2;
     double x_norm = utils::norm_max(dx_);
-
-    if(solver_options_.verbose)
-    {
-      std::cout << "It. " << iter_
-                << "\t Success"
-                << "\t new_chi2 = " << new_chi2
-                << "\t n_meas = " << n_meas_
-                << "\t x_norm = " << x_norm
-                << std::endl;
-    }
-
+    VLOG(5) << "It. " << iter_
+            << "\t Success"
+            << "\t new_chi2 = " << new_chi2
+            << "\t n_meas = " << n_meas_
+            << "\t x_norm = " << x_norm;
     finishIteration();
 
     // stop when converged, i.e. update step too small
     if(x_norm < solver_options_.eps)
     {
-      if(solver_options_.verbose)
-      {
-        std::cout << "Converged, x_norm " << x_norm << " < " << solver_options_.eps << std::endl;
-      }
+      VLOG(5) << "Converged, x_norm " << x_norm << " < " << solver_options_.eps;
       break;
     }
   }
@@ -129,23 +115,21 @@ void MiniLeastSquaresSolver<D, T>::optimizeLevenbergMarquardt(State& state)
 
   // compute the initial error
   chi2_ = evaluateError(state, nullptr, nullptr);
-
-  if(solver_options_.verbose)
-    std::cout << "init chi2 = " << chi2_
-         << "\t n_meas = " << n_meas_
-         << std::endl;
+  VLOG(5) << "init chi2 = " << chi2_
+          << "\t n_meas = " << n_meas_;
 
   // TODO: compute initial lambda
   // Hartley and Zisserman: "A typical init value of lambda is 10^-3 times the
   // average of the diagonal elements of J'J"
-
   // Compute Initial Lambda
   if(mu_ < 0)
   {
     double H_max_diag = 0;
     double tau = 1e-4;
     for(size_t j=0; j<D; ++j)
+    {
       H_max_diag = std::max(H_max_diag, std::fabs(H_(j,j)));
+    }
     mu_ = tau*H_max_diag;
   }
 
@@ -175,7 +159,9 @@ void MiniLeastSquaresSolver<D, T>::optimizeLevenbergMarquardt(State& state)
 
       // add prior
       if(have_prior_)
+      {
         applyPrior(state);
+      }
 
       // solve the linear system to obtain small perturbation in direction of gradient
       if(solve(H_, g_, dx_))
@@ -190,10 +176,8 @@ void MiniLeastSquaresSolver<D, T>::optimizeLevenbergMarquardt(State& state)
       }
       else
       {
-        // matrix was singular and could not be computed
-        std::cout << "Matrix is close to singular!" << std::endl;
-        std::cout << "H = " << H_ << std::endl;
-        std::cout << "Jres = " << g_ << std::endl;
+        LOG(WARNING) << "Matrix is close to singular! Stop Optimizing."
+                     << "H = " << H_ << "g = " << g_;
         rho_ = -1;
       }
 
@@ -205,17 +189,13 @@ void MiniLeastSquaresSolver<D, T>::optimizeLevenbergMarquardt(State& state)
         stop_ = utils::norm_max(dx_) < solver_options_.eps;
         mu_ *= std::max(1./3., std::min(1.-std::pow(2*rho_-1,3), 2./3.));
         nu_ = 2.;
-        if(solver_options_.verbose)
-        {
-          std::cout << "It. " << iter_
-                    << "\t Trial " << trials_
-                    << "\t Success"
-                    << "\t n_meas = " << n_meas_
-                    << "\t new_chi2 = " << new_chi2
-                    << "\t mu = " << mu_
-                    << "\t nu = " << nu_
-                    << std::endl;
-        }
+        VLOG(5) << "It. " << iter_
+                << "\t Trial " << trials_
+                << "\t Success"
+                << "\t n_meas = " << n_meas_
+                << "\t new_chi2 = " << new_chi2
+                << "\t mu = " << mu_
+                << "\t nu = " << nu_;
       }
       else
       {
@@ -226,24 +206,21 @@ void MiniLeastSquaresSolver<D, T>::optimizeLevenbergMarquardt(State& state)
         if (trials_ >= solver_options_.max_trials)
           stop_ = true;
 
-        if(solver_options_.verbose)
-        {
-          std::cout << "It. " << iter_
-                    << "\t Trial " << trials_
-                    << "\t Failure"
-                    << "\t n_meas = " << n_meas_
-                    << "\t new_chi2 = " << new_chi2
-                    << "\t mu = " << mu_
-                    << "\t nu = " << nu_
-                    << std::endl;
-        }
+        VLOG(5) << "It. " << iter_
+                << "\t Trial " << trials_
+                << "\t Failure"
+                << "\t n_meas = " << n_meas_
+                << "\t new_chi2 = " << new_chi2
+                << "\t mu = " << mu_
+                << "\t nu = " << nu_;
       }
-
       finishTrial();
 
     } while(!(rho_>0 || stop_));
     if (stop_)
+    {
       break;
+    }
 
     finishIteration();
   }
@@ -270,18 +247,6 @@ void MiniLeastSquaresSolver<D, T>::reset()
   iter_ = 0;
   trials_ = 0;
   stop_ = false;
-}
-
-template <int D, typename T>
-inline const double& MiniLeastSquaresSolver<D, T>::getChi2() const
-{
-  return chi2_;
-}
-
-template <int D, typename T>
-inline const Eigen::Matrix<double, D, D>& MiniLeastSquaresSolver<D, T>::getInformationMatrix() const
-{
-  return H_;
 }
 
 template <int D, typename T>

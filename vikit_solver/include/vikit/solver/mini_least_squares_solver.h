@@ -1,14 +1,4 @@
-/*
- * Abstract Nonlinear Least-Squares Solver Class
- *
- * nlls_solver.h
- *
- *  Created on: Nov 5, 2012
- *      Author: cforster
- */
-
-#ifndef LM_SOLVER_H_
-#define LM_SOLVER_H_
+#pragma once
 
 #include <iostream>
 #include <cmath>
@@ -57,18 +47,9 @@ struct MiniLeastSquaresSolverOptions
 };
 
 
-/**
- * \brief Abstract Class for solving nonlinear least-squares (NLLS) problems.
- *
- * The function implements two algorithms: Levenberg Marquardt and Gauss Newton
- *
- * Example implementations of this function can be found in the rpl_examples
- * package: img_align_2d.cpp, img_align_3d.cpp
- *
- * Template Parameters:
- * D  : dimension of the residual
- * T  : type of the model, e.g. SE2, SE3
- */
+/// Abstract Class for solving nonlinear least-squares (NLLS) problems.
+/// Template Parameters: D  : dimension of the residual, T: type of the model
+/// e.g. SE2, SE3
 template <int D, typename T>
 class MiniLeastSquaresSolver
 {
@@ -82,9 +63,9 @@ public:
 
   MiniLeastSquaresSolverOptions solver_options_;
 
-  MiniLeastSquaresSolver(const MiniLeastSquaresSolverOptions& options) :
-    solver_options_(options)
-  {}
+  MiniLeastSquaresSolver() = default;
+
+  MiniLeastSquaresSolver(const MiniLeastSquaresSolverOptions& options);
 
   virtual ~MiniLeastSquaresSolver() = default;
 
@@ -106,23 +87,29 @@ public:
   void reset();
 
   /// Get the squared error
-  const double& getChi2() const;
+  inline double getError() const
+  {
+    return chi2_;
+  }
 
-  /// The Information matrix is equal to the inverse covariance matrix.
-  const Matrix<double, D, D>& getInformationMatrix() const;
+  /// The the Hessian matrix (Information Matrix).
+  inline const Matrix<double, D, D>& getHessian() const
+  {
+    return H_;
+  }
 
 protected:
 
-  /// If the flag linearize_system is set, the function must also compute the
-  /// Jacobian and set the member variables H_, Jres_
+  /// Evaluates the error at provided state. Optional return variables are
+  /// the Hessian matrix and the gradient vector (Jacobian * residual).
+  /// If these parameters are requested, the system is linearized at the current
+  /// state.
   virtual double evaluateError(
       const State& state,
       HessianMatrix* H,
       GradientVector* g) = 0;
 
-  /// Solve the linear system H*x = Jres. This function must set the update
-  /// step in the member variable x_. Must return true if the system could be
-  /// solved and false if it was singular.
+  /// Solve the linear system H*dx = g to obtain optimal perturbation dx.
   virtual bool solve(
       const HessianMatrix& H,
       const GradientVector& g,
@@ -152,20 +139,17 @@ protected:
   bool have_prior_ = false;
   State prior_;
   Matrix<double, D, D> I_prior_; ///< Prior information matrix (inverse covariance)
-  double chi2_ = 0.0;
-  double rho_ = 0.0;
+  double chi2_ = 0.0;       ///< Whitened error / log-likelihood: 1/(2*sigma^2)*(z-h(x))^2.
+  double rho_ = 0.0;        ///< Error reduction: chi2-new_chi2.
   double mu_ = 0.01;        ///< Damping parameter.
   double nu_ = 2.0;         ///< Factor that specifies how much we increase mu at every trial.
   size_t n_meas_ = 0;       ///< Number of measurements.
   bool stop_ = false;       ///< Stop flag.
   size_t iter_ = 0;         ///< Current Iteration.
   size_t trials_ = 0;       ///< Current number of trials.
-
 };
 
 } // namespace solver
 } // namespace vk
 
 #include "implementation/mini_least_squares_solver.hpp"
-
-#endif /* LM_SOLVER_H_ */

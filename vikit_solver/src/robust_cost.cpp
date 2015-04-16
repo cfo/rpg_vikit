@@ -1,7 +1,8 @@
+#include "vikit/solver/robust_cost.h"
+
 #include <numeric>
 #include <algorithm>
 #include <glog/logging.h>
-#include <vikit/solver/robust_cost.h>
 
 namespace vk {
 namespace solver {
