@@ -168,6 +168,24 @@ public:
   /// Helper for transition to aslam_cv2.
   uint32_t imageHeight() const { return height_; }
 
+  /// Helper for transition to aslam_cv2.
+  inline bool isKeypointVisible(const Eigen::Ref<const Eigen::Vector2d>& keypoint) const
+  {
+    return keypoint[0] >= 0.0
+        && keypoint[1] >= 0.0
+        && keypoint[0] < imageWidth()
+        && keypoint[1] < imageHeight();
+  }
+
+  /// Helper for transition to aslam_cv2.
+  inline bool isKeypointWithinBoundary(const Eigen::Ref<const Eigen::Vector2d>& keypoint, double boundary) const
+  {
+    return keypoint[0] >= boundary
+        && keypoint[1] >= boundary
+        && keypoint[0] < imageWidth()-boundary
+        && keypoint[1] < imageHeight()-boundary;
+  }
+
 protected:
   const int width_;
   const int height_;
