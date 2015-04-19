@@ -114,19 +114,19 @@ public:
   // Check if a pixel is within the image boundaries.
   inline bool isInFrame(const Eigen::Vector2i& px, const int boundary=0) const
   {
-    if(px[0] >= boundary && px[0] < width_-boundary
-        && px[1] >= boundary && px[1] < height_-boundary)
-      return true;
-    return false;
+    return px[0] >= boundary
+        && px[0] <  width_-boundary
+        && px[1] >= boundary
+        && px[1] <  height_-boundary;
   }
 
   // Check if a pixel is within image boundaries at specified pyramid level.
   inline bool isInFrame(const Eigen::Vector2i& px, const int boundary, const int level) const
   {
-    if(px[0] >= boundary && px[0] < width_/(1<<level)-boundary
-        && px[1] >= boundary && px[1] <height_/(1<<level)-boundary)
-      return true;
-    return false;
+    return px[0] >= boundary
+        && px[0] <  width_/(1<<level)-boundary
+        && px[1] >= boundary
+        && px[1] <  height_/(1<<level)-boundary;
   }
 
   // Print camera info
