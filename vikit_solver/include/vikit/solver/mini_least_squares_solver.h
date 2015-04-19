@@ -46,7 +46,6 @@ struct MiniLeastSquaresSolverOptions
   double eps = 0.0000000001;
 };
 
-
 /// Abstract Class for solving nonlinear least-squares (NLLS) problems.
 /// Template Parameters: D  : dimension of the residual, T: type of the model
 /// e.g. SE2, SE3

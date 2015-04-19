@@ -10,9 +10,8 @@
 
 #include <list>
 #include <string>
-#include <vikit/cameras.h>
 #include <vikit/math_utils.h>
-#include <opencv2/opencv.hpp>
+#include <opencv2/core/core.hpp>
 #include <fstream>
 #include <Eigen/Core>
 
@@ -21,40 +20,34 @@ namespace blender_utils {
 
 void loadBlenderDepthmap(
     const std::string file_name,
-    const vk::cameras::CameraGeometryBase::Ptr& cam,
-    cv::Mat& img,
-    bool get_z = false)
+    const int img_width,
+    const int img_height,
+    cv::Mat& z_map)
 {
   std::ifstream file_stream(file_name.c_str());
   assert(file_stream.is_open());
-  img = cv::Mat(cam->imageHeight(), cam->imageWidth(), CV_32FC1);
-  float * img_ptr = img.ptr<float>();
+  z_map = cv::Mat(img_height, img_width, CV_32FC1);
+  float * img_ptr = z_map.ptr<float>();
   float depth;
-  for(int y=0; y<cam->imageHeight(); ++y)
+  for(int y=0; y<img_height; ++y)
   {
-    for(int x=0; x<cam->imageWidth(); ++x, ++img_ptr)
+    for(int x=0; x<img_width; ++x, ++img_ptr)
     {
       file_stream >> depth;
+
       // blender:
-      if(get_z)
-      {
-        *img_ptr = depth;
-      }
-      else
-      {
-        Eigen::Vector2d uv(cam->camToWorld(Vector2d(x,y)).head<2>());
-        *img_ptr = depth * std::sqrt(uv[0]*uv[0] + uv[1]*uv[1] + 1.0);
-      }
+      *img_ptr = depth;
 
       // povray
       // *img_ptr = depth/100.0; // depth is in [cm], we want [m]
 
-      if(file_stream.peek() == '\n' && x != cam->imageWidth()-1 && y != cam->imageHeight()-1)
+      if(file_stream.peek() == '\n' && x != img_width-1 && y != img_height-1)
         printf("WARNING: did not read the full depthmap!\n");
     }
   }
 }
 
+/*
 bool getDepthmapNormalAtPoint(
     const Vector2i& px,
     const cv::Mat& depth,
@@ -91,50 +84,8 @@ bool getDepthmapNormalAtPoint(
   normal.normalize();
   return true;
 }
+*/
 
-namespace file_format
-{
-
-class ImageNameAndPose
-{
-public:
-  ImageNameAndPose() {}
-  virtual ~ImageNameAndPose() {}
-  double timestamp_;
-  std::string image_name_;
-  Eigen::Vector3d t_;
-  Eigen::Quaterniond q_;
-  friend std::ostream& operator <<(std::ostream& out, const ImageNameAndPose& pair);
-  friend std::istream& operator >>(std::istream& in, ImageNameAndPose& pair);
-};
-
-std::ostream& operator <<(std::ostream& out, const ImageNameAndPose& gt)
-{
-  out << gt.timestamp_ << " " << gt.image_name_ << " "
-      << gt.t_.x()   << " " << gt.t_.y()   << " " << gt.t_.z()   << " "
-      << gt.q_.x()   << " " << gt.q_.y()   << " " << gt.q_.z()   << " " << gt.q_.w()   << " " << std::endl;
-  return out;
-}
-
-std::istream& operator >>(std::istream& in, ImageNameAndPose& gt)
-{
-  in >> gt.timestamp_;
-  in >> gt.image_name_;
-  double tx, ty, tz, qx, qy, qz, qw;
-  in >> tx;
-  in >> ty;
-  in >> tz;
-  in >> qx;
-  in >> qy;
-  in >> qz;
-  in >> qw;
-  gt.t_ = Eigen::Vector3d(tx, ty, tz);
-  gt.q_ = Eigen::Quaterniond(qw, qx, qy, qz);
-  gt.q_.normalize();
-  return in;
-}
-
-} // namespace file_format
 } // namespace blender_utils
 } // namespace vk
 

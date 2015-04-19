@@ -79,7 +79,7 @@ TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${VIKIT_LINK_LIBS})
 
 # Unit tests
 CATKIN_ADD_GTEST(homography test/test_homography.cpp)
-TARGET_LINK_LIBRARIES(homography svo gtest)
+TARGET_LINK_LIBRARIES(homography gtest ${PROJECT_NAME})
 
 # Other tests
 ADD_EXECUTABLE(vikit_test_timer test/test_timer.cpp)
