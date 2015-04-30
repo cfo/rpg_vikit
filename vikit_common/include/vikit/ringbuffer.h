@@ -36,9 +36,10 @@ class RingBuffer
 {
 public:
   RingBuffer(int size);
-  ~RingBuffer() {}
+  RingBuffer(int size, const T& initial_value);
+  ~RingBuffer() = default;
 
-  void push_back(const T & elem);
+  void push_back(const T& elem);
   bool empty() const;
   void clear();
   T get(int i);
@@ -49,19 +50,22 @@ public:
 
 private:
   std::vector<T> arr_;
-  int begin_;
-  int end_;
-  int num_elem_;
+  int begin_ = 0;
+  int end_ = -1;
+  int num_elem_ = 0;
   int arr_size_;
 };
 
 template <class T>
-RingBuffer<T>::RingBuffer(int size) :
-    arr_(size),
-    begin_(0),
-    end_(-1),
-    num_elem_(0),
-    arr_size_(size)
+RingBuffer<T>::RingBuffer(int size)
+  : arr_(size)
+  , arr_size_(size)
+{}
+
+template <class T>
+RingBuffer<T>::RingBuffer(int size, const T& initial_value)
+  : arr_(size, initial_value)
+  , arr_size_(size)
 {}
 
 template <class T>
