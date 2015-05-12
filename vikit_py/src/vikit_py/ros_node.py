@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import os
+import rospy
 
 class RosNode:
     def __init__(self, package, executable):
@@ -15,11 +16,13 @@ class RosNode:
             else:
                 self._param_string += ' _'+namespace+key+':='+str(parameter_dictionary[key])
         
-    def clear_parameters(self, namespace):
-        os.system('rosparam clear '+namespace)
+    def clear_all_parameters(self):
+        params = rospy.get_param_names()
+        for p in params:
+            rospy.delete_param(p)
 
     def run(self, parameter_dictionary, namespace=''):
-        self.clear_parameters(namespace)
+        self.clear_all_parameters()
         self.add_parameters(namespace, parameter_dictionary)
         print('Starting ROS node with parameters: '+self._param_string)
         
