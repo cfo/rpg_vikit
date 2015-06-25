@@ -125,7 +125,7 @@ protected:
     if(&MiniLeastSquaresSolver::solve != &Implementation::solve)
       return impl().solve(H, g, dx);
     else
-      return solve_impl(H, g, dx);
+      return solveDefaultImpl(H, g, dx);
   }
 
   /// Apply the perturbation dx to the state.
@@ -164,7 +164,7 @@ protected:
 private:
 
   /// Default implementation to solve the linear system H*dx = g to obtain optimal perturbation dx.
-  bool solve_impl(
+  bool solveDefaultImpl(
       const HessianMatrix& H,
       const GradientVector& g,
       UpdateVector& dx);
