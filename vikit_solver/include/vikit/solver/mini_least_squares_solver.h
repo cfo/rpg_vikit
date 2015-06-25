@@ -49,7 +49,7 @@ struct MiniLeastSquaresSolverOptions
 /// Abstract Class for solving nonlinear least-squares (NLLS) problems.
 /// Template Parameters: D  : dimension of the residual, T: type of the model
 /// e.g. SE2, SE3
-template <int D, typename T>
+template <int D, typename T, typename Implementation>
 class MiniLeastSquaresSolver
 {
 public:
@@ -58,16 +58,16 @@ public:
   typedef Matrix<double, D, 1> GradientVector;
   typedef Matrix<double, D, 1> UpdateVector;
 
-public:
-
   MiniLeastSquaresSolverOptions solver_options_;
 
+protected:
   MiniLeastSquaresSolver() = default;
 
   MiniLeastSquaresSolver(const MiniLeastSquaresSolverOptions& options);
 
   virtual ~MiniLeastSquaresSolver() = default;
 
+public:
   /// Calls the GaussNewton or LevenbergMarquardt optimization strategy
   void optimize(State& state);
 
@@ -99,39 +99,77 @@ public:
 
 protected:
 
+  Implementation& impl()
+  {
+    return *static_cast<Implementation*>(this);
+  }
+
   /// Evaluates the error at provided state. Optional return variables are
   /// the Hessian matrix and the gradient vector (Jacobian * residual).
   /// If these parameters are requested, the system is linearized at the current
   /// state.
-  virtual double evaluateError(
+  double evaluateError(
       const State& state,
       HessianMatrix* H,
-      GradientVector* g) = 0;
+      GradientVector* g)
+  {
+    return impl().evaluateError(state, H, g);
+  }
 
   /// Solve the linear system H*dx = g to obtain optimal perturbation dx.
-  virtual bool solve(
+  bool solve(
+      const HessianMatrix& H,
+      const GradientVector& g,
+      UpdateVector& dx)
+  {
+    if(&MiniLeastSquaresSolver::solve != &Implementation::solve)
+      return impl().solve(H, g, dx);
+    else
+      return solve_impl(H, g, dx);
+  }
+
+  /// Apply the perturbation dx to the state.
+  void update(
+      const State& state,
+      const UpdateVector& dx,
+      State& new_state)
+  {
+    impl().update(state, dx, new_state);
+  }
+
+  void applyPrior(const State& current_model)
+  {
+    if(&MiniLeastSquaresSolver::applyPrior != &Implementation::applyPrior)
+      impl().applyPrior(current_model);
+  }
+
+  void startIteration()
+  {
+    if(&MiniLeastSquaresSolver::startIteration != &Implementation::startIteration)
+      impl().startIteration();
+  }
+
+  void finishIteration()
+  {
+    if(&MiniLeastSquaresSolver::finishIteration != &Implementation::finishIteration)
+      impl().finishIteration();
+  }
+
+  void finishTrial()
+  {
+    if(&MiniLeastSquaresSolver::finishTrial != &Implementation::finishTrial)
+      impl().finishTrial();
+  }
+
+private:
+
+  /// Default implementation to solve the linear system H*dx = g to obtain optimal perturbation dx.
+  bool solve_impl(
       const HessianMatrix& H,
       const GradientVector& g,
       UpdateVector& dx);
 
-  /// Apply the perturbation dx to the state.
-  virtual void update(
-      const State& state,
-      const UpdateVector& dx,
-      State& new_state) = 0;
-
-  virtual void applyPrior(const State& /*current_model*/)
-  {}
-
-  virtual void startIteration()
-  {}
-
-  virtual void finishIteration()
-  {}
-
-  virtual void finishTrial()
-  {}
-
+protected:
   HessianMatrix  H_;        ///< Hessian or approximation Jacobian*Jacobian^T.
   GradientVector g_;        ///< Jacobian*residual.
   UpdateVector   dx_;       ///< Update step.

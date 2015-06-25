@@ -22,14 +22,14 @@ inline double norm_max(const Eigen::VectorXd & v)
 
 } // namespace utils
 
-template <int D, typename T>
-MiniLeastSquaresSolver<D, T>::MiniLeastSquaresSolver(
+template <int D, typename T, typename Implementation>
+MiniLeastSquaresSolver<D, T, Implementation>::MiniLeastSquaresSolver(
     const MiniLeastSquaresSolverOptions& options)
   : solver_options_(options)
 {}
 
-template <int D, typename T>
-void MiniLeastSquaresSolver<D, T>::optimize(State& state)
+template <int D, typename T, typename Implementation>
+void MiniLeastSquaresSolver<D, T, Implementation>::optimize(State& state)
 {
   if(solver_options_.strategy == Strategy::GaussNewton)
     optimizeGaussNewton(state);
@@ -38,8 +38,8 @@ void MiniLeastSquaresSolver<D, T>::optimize(State& state)
 }
 
 
-template <int D, typename T>
-void MiniLeastSquaresSolver<D, T>::optimizeGaussNewton(State& state)
+template <int D, typename T, typename Implementation>
+void MiniLeastSquaresSolver<D, T, Implementation>::optimizeGaussNewton(State& state)
 {
   // Save the old model to rollback in case of unsuccessful update
   State old_state = state;
@@ -106,8 +106,8 @@ void MiniLeastSquaresSolver<D, T>::optimizeGaussNewton(State& state)
   }
 }
 
-template <int D, typename T>
-void MiniLeastSquaresSolver<D, T>::optimizeLevenbergMarquardt(State& state)
+template <int D, typename T, typename Implementation>
+void MiniLeastSquaresSolver<D, T, Implementation>::optimizeLevenbergMarquardt(State& state)
 {
   // init parameters
   mu_ = solver_options_.mu_init;
@@ -226,8 +226,8 @@ void MiniLeastSquaresSolver<D, T>::optimizeLevenbergMarquardt(State& state)
   }
 }
 
-template <int D, typename T>
-void MiniLeastSquaresSolver<D, T>::setPrior(
+template <int D, typename T, typename Implementation>
+void MiniLeastSquaresSolver<D, T, Implementation>::setPrior(
     const T&  prior,
     const Matrix<double, D, D>&  Information)
 {
@@ -236,8 +236,8 @@ void MiniLeastSquaresSolver<D, T>::setPrior(
   I_prior_ = Information;
 }
 
-template <int D, typename T>
-void MiniLeastSquaresSolver<D, T>::reset()
+template <int D, typename T, typename Implementation>
+void MiniLeastSquaresSolver<D, T, Implementation>::reset()
 {
   have_prior_ = false;
   chi2_ = 1e10;
@@ -249,8 +249,8 @@ void MiniLeastSquaresSolver<D, T>::reset()
   stop_ = false;
 }
 
-template <int D, typename T>
-bool MiniLeastSquaresSolver<D, T>::solve(
+template <int D, typename T, typename Implementation>
+bool MiniLeastSquaresSolver<D, T, Implementation>::solveDefaultImpl(
     const HessianMatrix& H,
     const GradientVector& g,
     UpdateVector& dx)
